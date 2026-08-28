@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 2 Checkpoint | Apache Airflow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=Work+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#182B2C; --ink-2:#22393B; --ink-soft: rgba(24,43,44,0.65);
+    --paper:#F7F1E2; --paper-2:#EFE4C8; --paper-3:#FBF8EF;
+    --brass:#C1893C; --brass-2:#E3A855;
+    --tomato:#BD4C29; --tomato-soft:#F4DCCD;
+    --sage:#5F7A52; --sage-soft:#DFE7D3;
+    --violet:#6E5A9E; --violet-soft:#E7E1F2;
+    --blue:#3E6C94; --blue-soft:#DCE7EF;
+    --line: rgba(24,43,44,0.14);
+    --display:'Fraunces', serif; --body:'Work Sans', sans-serif; --mono:'Space Mono', monospace;
+    --radius: 16px; --shadow: 0 10px 30px rgba(24,43,44,0.12);
+  }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--paper); color:var(--ink); font-family:var(--body); line-height:1.6; -webkit-font-smoothing:antialiased;}
+  ::selection{ background:var(--brass-2); color:var(--ink); }
+  a{color:inherit;}
+
+  .topbar{
+    background:var(--ink); color:var(--paper-3); padding:14px 24px;
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;
+    font-family:var(--mono); font-size:0.74rem; text-transform:uppercase; letter-spacing:0.06em;
+  }
+  .topbar .brand{ color:var(--brass-2); display:flex; gap:8px; align-items:center;}
+  .topbar .brand::before{ content:"◆"; }
+  .topbar .back{ cursor:pointer; color:rgba(247,241,226,0.6); display:none; }
+  .topbar .back.show{ display:inline-block; }
+  .topbar .back:hover{ color:var(--paper-3); }
+
+  .wrap{ max-width:900px; margin:0 auto; padding: 56px 24px 90px; }
+  .view{ display:none; animation: fade .35s ease; }
+  .view.active{ display:block; }
+  @keyframes fade{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+
+  .eyebrow{ font-family:var(--mono); text-transform:uppercase; letter-spacing:0.12em; font-size:0.76rem; color:var(--tomato); margin:0 0 10px;}
+  h1.pagetitle{ font-family:var(--display); font-weight:700; font-size:clamp(1.9rem,4vw,2.7rem); margin:0 0 14px; letter-spacing:-0.01em;}
+  .pagesub{ color:var(--ink-soft); max-width:560px; margin:0 0 40px; font-size:1.02rem;}
+
+  /* ---------- landing cards ---------- */
+  .card-grid{ display:grid; grid-template-columns:1fr; gap:16px; }
+  @media(min-width:760px){ .card-grid{ grid-template-columns:repeat(4,1fr);} }
+  .opt-card{
+    background:var(--paper-3); border:1px solid var(--line); border-radius:var(--radius);
+    padding:28px 18px; text-align:center; cursor:pointer; transition: all .18s ease;
+  }
+  .opt-card:hover{ transform:translateY(-4px); box-shadow:var(--shadow); border-color:var(--brass);}
+  .opt-icon{
+    width:56px; height:56px; border-radius:50%; margin:0 auto 16px; display:flex; align-items:center; justify-content:center;
+    font-size:1.5rem;
+  }
+  .opt-card h4{ font-family:var(--display); font-size:1.15rem; margin:0 0 4px;}
+  .opt-card p{ margin:0; color:var(--ink-soft); font-size:0.86rem; font-family:var(--mono); text-transform:uppercase; letter-spacing:0.04em;}
+  .ic-mcq{ background:var(--violet-soft); color:var(--violet); }
+  .ic-short{ background:var(--blue-soft); color:var(--blue); }
+  .ic-long{ background:var(--tomato-soft); color:var(--tomato); }
+  .ic-lab{ background:var(--sage-soft); color:var(--sage); }
+
+  /* ---------- form ---------- */
+  .form-card{ background:var(--paper-3); border:1px solid var(--line); border-radius:var(--radius); padding:32px; max-width:460px; box-shadow:var(--shadow);}
+  .field{ margin-bottom:18px; }
+  .field label{ display:block; font-family:var(--mono); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-soft); margin-bottom:6px;}
+  .field input{
+    width:100%; padding:12px 14px; border-radius:10px; border:1px solid var(--line); background:var(--paper);
+    font-family:var(--body); font-size:0.98rem; color:var(--ink);
+  }
+  .field input:focus{ outline:2px solid var(--brass-2); outline-offset:1px; }
+  .btn{
+    display:inline-block; background:var(--ink); color:var(--paper-3); border:none; padding:13px 26px;
+    border-radius:999px; font-family:var(--mono); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;
+    cursor:pointer; font-weight:700;
+  }
+  .btn:hover{ background:var(--ink-2); }
+  .btn.brass{ background:var(--brass-2); color:var(--ink); }
+  .btn.brass:hover{ background:var(--brass); }
+  .btn.ghost{ background:transparent; border:1px solid var(--line); color:var(--ink); }
+  .err{ color:var(--tomato); font-size:0.82rem; margin-top:6px; display:none; font-family:var(--mono);}
+
+  /* ---------- quiz ---------- */
+  .q-card{ background:var(--paper-3); border:1px solid var(--line); border-radius:var(--radius); padding:24px; margin-bottom:16px;}
+  .q-num{ font-family:var(--mono); font-size:0.72rem; text-transform:uppercase; color:var(--brass); letter-spacing:0.06em; margin-bottom:8px;}
+  .q-text{ font-family:var(--display); font-size:1.15rem; margin:0 0 16px; }
+  .opt-row{ display:block; padding:12px 14px; border:1px solid var(--line); border-radius:10px; margin-bottom:8px; cursor:pointer; transition: all .12s ease;}
+  .opt-row:hover{ border-color:var(--brass); }
+  .opt-row input{ margin-right:10px; }
+  .opt-row.picked{ border-color:var(--brass); background:var(--paper-2); }
+
+  .sticky-submit{ position:sticky; bottom:16px; text-align:center; margin-top:26px; }
+  .sticky-submit .btn{ box-shadow:var(--shadow); }
+
+  /* ---------- results ---------- */
+  .score-hero{
+    background:var(--ink); color:var(--paper-3); border-radius:var(--radius); padding:36px; text-align:center; margin-bottom:28px;
+  }
+  .score-hero .big{ font-family:var(--display); font-size:3.4rem; color:var(--brass-2); font-weight:700; }
+  .score-hero .lbl{ font-family:var(--mono); font-size:0.76rem; text-transform:uppercase; letter-spacing:0.08em; color:rgba(247,241,226,0.6);}
+  .badge{ display:inline-block; margin-top:14px; padding:6px 16px; border-radius:999px; font-family:var(--mono); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.06em;}
+  .badge.pass{ background:var(--sage-soft); color:var(--sage); }
+  .badge.fail{ background:var(--tomato-soft); color:var(--tomato); }
+
+  .review-item{ background:var(--paper-3); border:1px solid var(--line); border-left:5px solid var(--line); border-radius:var(--radius); padding:20px; margin-bottom:12px;}
+  .review-item.right{ border-left-color:var(--sage); }
+  .review-item.wrong{ border-left-color:var(--tomato); }
+  .review-tag{ font-family:var(--mono); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px; display:inline-block; padding:3px 10px; border-radius:999px;}
+  .review-item.right .review-tag{ background:var(--sage-soft); color:var(--sage);}
+  .review-item.wrong .review-tag{ background:var(--tomato-soft); color:var(--tomato);}
+  .review-q{ font-family:var(--display); font-size:1.02rem; margin:6px 0 10px;}
+  .review-row{ font-size:0.9rem; margin:3px 0; }
+  .review-row b{ font-family:var(--mono); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); margin-right:6px;}
+  .review-explain{ margin-top:10px; padding-top:10px; border-top:1px dashed var(--line); color:var(--ink-soft); font-size:0.9rem;}
+
+  .action-row{ display:flex; gap:12px; flex-wrap:wrap; margin-top:24px; }
+
+  /* ---------- flip / reveal cards for short & long ---------- */
+  .rev-card{ background:var(--paper-3); border:1px solid var(--line); border-radius:var(--radius); margin-bottom:14px; overflow:hidden;}
+  .rev-head{ display:flex; justify-content:space-between; align-items:center; padding:20px 24px; cursor:pointer; gap:16px;}
+  .rev-head .qn{ font-family:var(--mono); font-size:0.7rem; color:var(--brass); text-transform:uppercase; letter-spacing:0.06em; display:block; margin-bottom:6px;}
+  .rev-head h4{ font-family:var(--display); font-size:1.08rem; margin:0; font-weight:600; }
+  .rev-plus{ font-family:var(--mono); font-size:1.3rem; color:var(--brass); flex-shrink:0; transition: transform .2s ease;}
+  .rev-card.open .rev-plus{ transform:rotate(45deg); }
+  .rev-body{ max-height:0; overflow:hidden; transition:max-height .3s ease; padding:0 24px;}
+  .rev-card.open .rev-body{ padding-bottom:22px; }
+  .rev-body p{ margin:0.5em 0; color:var(--ink-soft); font-size:0.94rem;}
+  .rev-body .model-lbl{ font-family:var(--mono); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--sage); margin-bottom:6px; display:block;}
+
+  /* ---------- lab ---------- */
+  .lab-card{ background:var(--paper-3); border:1px solid var(--line); border-radius:var(--radius); padding:30px; box-shadow:var(--shadow);}
+  .lab-card h3{ font-family:var(--display); font-size:1.4rem; margin:0 0 14px;}
+  .lab-card ul{ padding-left:20px; }
+  .lab-card li{ margin-bottom:10px; color:var(--ink-soft); font-size:0.96rem;}
+  .lab-tag{ display:inline-block; font-family:var(--mono); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.06em; background:var(--sage-soft); color:var(--sage); padding:5px 12px; border-radius:999px; margin-bottom:16px;}
+  .lab-note{ background:var(--paper-2); border-radius:12px; padding:16px 18px; margin-top:20px; font-size:0.88rem; color:var(--ink-soft);}
+
+  footer{ text-align:center; padding:30px 24px 50px; font-family:var(--mono); font-size:0.74rem; color:var(--ink-soft);}
+  footer .name{ color:var(--tomato); font-weight:700; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="brand">Day 2 Checkpoint</span>
+  <span class="back" id="backBtn" onclick="showView('landing')">← Back to menu</span>
+</div>
+
+<div class="wrap">
+
+  <!-- LANDING -->
+  <section class="view active" id="landing">
+    <p class="eyebrow">Module 3 & 4 · Practice What You Learned</p>
+    <h1 class="pagetitle">Pick how you want to practice.</h1>
+    <p class="pagesub">Everything here covers today's two modules — Scheduling & Triggers, and Web UI/CLI/Monitoring. Do the MCQs first; it's graded and emailed to you automatically.</p>
+
+    <div class="card-grid">
+      <div class="opt-card" onclick="showView('mcq-register')">
+        <div class="opt-icon ic-mcq">❓</div>
+        <h4>MCQs</h4>
+        <p>10 Questions · Graded</p>
+      </div>
+      <div class="opt-card" onclick="showView('shortq')">
+        <div class="opt-icon ic-short">📝</div>
+        <h4>Short Qs</h4>
+        <p>8 Questions</p>
+      </div>
+      <div class="opt-card" onclick="showView('longq')">
+        <div class="opt-icon ic-long">📖</div>
+        <h4>Long Qs</h4>
+        <p>3 Questions</p>
+      </div>
+      <div class="opt-card" onclick="showView('codelab')">
+        <div class="opt-icon ic-lab">💻</div>
+        <h4>Code Lab</h4>
+        <p>Try It Yourself</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MCQ REGISTER -->
+  <section class="view" id="mcq-register">
+    <p class="eyebrow">MCQ Checkpoint</p>
+    <h1 class="pagetitle">Before you start...</h1>
+    <p class="pagesub">Enter your details so your score can be recorded and emailed to you at the end.</p>
+
+    <div class="form-card">
+      <div class="field">
+        <label for="sName">Full name</label>
+        <input type="text" id="sName" placeholder="e.g. Aditi Rao">
+      </div>
+      <div class="field">
+        <label for="sEmail">Email address</label>
+        <input type="email" id="sEmail" placeholder="you@example.com">
+      </div>
+      <div class="err" id="regErr">Please fill in both fields with a valid email.</div>
+      <button class="btn brass" onclick="startQuiz()">Start Quiz →</button>
+    </div>
+  </section>
+
+  <!-- MCQ QUIZ -->
+  <section class="view" id="mcq-quiz">
+    <p class="eyebrow">MCQ Checkpoint · 10 Questions</p>
+    <h1 class="pagetitle">Answer all, then submit.</h1>
+    <p class="pagesub">You can change an answer any time before hitting submit at the bottom.</p>
+    <div id="quizQuestions"></div>
+    <div class="sticky-submit">
+      <button class="btn brass" onclick="submitQuiz()">Submit Quiz</button>
+    </div>
+  </section>
+
+  <!-- MCQ RESULTS -->
+  <section class="view" id="mcq-results">
+    <p class="eyebrow">MCQ Checkpoint · Results</p>
+    <h1 class="pagetitle" id="resultsTitle">Here's how you did.</h1>
+
+    <div class="score-hero">
+      <div class="lbl">Your score</div>
+      <div class="big" id="scoreBig">0 / 10</div>
+      <div class="badge" id="scoreBadge"></div>
+    </div>
+
+    <div id="reviewList"></div>
+
+    <div class="action-row">
+      <button class="btn brass" onclick="emailResults()">✉ Email My Results</button>
+      <button class="btn ghost" onclick="copyResults()">Copy Results</button>
+      <button class="btn ghost" onclick="showView('landing')">Back to Menu</button>
+    </div>
+    <div class="lab-note" style="margin-top:20px;">"Email My Results" opens your email app with everything pre-filled — just hit send. It sends a copy to you and to your instructor.</div>
+  </section>
+
+  <!-- SHORT QS -->
+  <section class="view" id="shortq">
+    <p class="eyebrow">Short Answer Practice · Module 3 & 4</p>
+    <h1 class="pagetitle">Answer in your head first.</h1>
+    <p class="pagesub">Tap a question to reveal the model answer. Be honest with yourself before peeking.</p>
+    <div id="shortList"></div>
+  </section>
+
+  <!-- LONG QS -->
+  <section class="view" id="longq">
+    <p class="eyebrow">Long Answer Practice · Module 3 & 4</p>
+    <h1 class="pagetitle">Explain it like you're teaching it.</h1>
+    <p class="pagesub">These are essay-style — write a few paragraphs on paper or out loud before revealing the model answer.</p>
+    <div id="longList"></div>
+  </section>
+
+  <!-- CODE LAB -->
+  <section class="view" id="codelab">
+    <p class="eyebrow">Homework · Due before Day 3</p>
+    <h1 class="pagetitle">The Late-Night Rush DAG</h1>
+    <span class="lab-tag">Solo build · Submit a .py file</span>
+
+    <div class="lab-card">
+      <h3>Scenario</h3>
+      <p style="color:var(--ink-soft);">A restaurant wants an Airflow DAG that kicks off their late-night rush prep — checking expected demand, deciding how much staff to call in, and always closing out with a shift report, even if something along the way fails.</p>
+
+      <h3 style="margin-top:26px;">Requirements</h3>
+      <ul>
+        <li>DAG id: <code>late_night_rush</code>. Must be <b>timezone-aware</b> (use <code>pendulum</code>, not plain <code>datetime</code>), scheduled daily at <b>11 PM IST</b>, and must <b>not</b> backfill historical days.</li>
+        <li>First task, <code>check_delivery_demand</code>, simulates a call to a delivery-aggregator API. Configure it with <code>retries=3</code>, an initial <code>retry_delay</code> of 1 minute, <b>exponential backoff enabled</b>, and a <code>max_retry_delay</code> capped at 10 minutes.</li>
+        <li>Based on the (simulated) demand value, <b>branch</b> using <code>BranchPythonOperator</code>: high demand goes to a <code>call_extra_staff</code> path, otherwise a <code>standard_staffing</code> path. (Branch on an actual value returned by the check — not a string-matching shortcut.)</li>
+        <li>Both paths must converge into one final task, <code>shift_report</code>, which should run <b>regardless of which branch was taken</b> — pick the correct <code>trigger_rule</code> so it doesn't get skipped the way <code>close_kitchen</code> did in class.</li>
+        <li>Attach an <code>on_failure_callback</code> via <code>default_args</code> (a simple function that logs/prints the failing <code>dag_id</code> and <code>task_id</code> is enough — no real Slack/email integration required) so it covers every task in the DAG automatically.</li>
+      </ul>
+
+      <h3 style="margin-top:26px;">Submit</h3>
+      <ul>
+        <li>One <code>.py</code> file, named <code>late_night_rush_dag.py</code></li>
+        <li>A short paragraph (3–5 sentences): if this DAG had been left <b>paused for a week</b> with <code>catchup=True</code> instead of <code>False</code>, what would happen the moment you unpaused it — and why?</li>
+      </ul>
+
+      <div class="lab-note">This combines five separate things from today — timezone-aware scheduling, retry/backoff config, branching, trigger rules, and failure callbacks — into one working DAG. Get each piece running on its own first before wiring them together.</div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  Day 2 Checkpoint · Apache Airflow for Data Engineering<br>
+  Curated &amp; delivered by <span class="name">Siddhant Deepak Kumar Pradhan</span>
+</footer>
+
+<script>
+  /* ============ CONFIG — edit these two lines ============ */
+  const INSTRUCTOR_EMAIL = "instructor@example.com"; // <-- put your real email here
+  const PASS_MARK = 7; // out of 10
+  /* ========================================================= */
+
+  function showView(id){
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.getElementById('backBtn').classList.toggle('show', id !== 'landing');
+    window.scrollTo({top:0, behavior:'smooth'});
+    if(id === 'shortq' && !document.getElementById('shortList').dataset.built) buildShort();
+    if(id === 'longq' && !document.getElementById('longList').dataset.built) buildLong();
+  }
+
+  let studentName = "", studentEmail = "";
+
+  function startQuiz(){
+    const name = document.getElementById('sName').value.trim();
+    const email = document.getElementById('sEmail').value.trim();
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if(!name || !emailOk){
+      document.getElementById('regErr').style.display = 'block';
+      return;
+    }
+    document.getElementById('regErr').style.display = 'none';
+    studentName = name; studentEmail = email;
+    buildQuiz();
+    showView('mcq-quiz');
+  }
+
+  const mcqs = [
+    { q:"A DAG scheduled @daily fires at midnight on Wednesday. What is its logical_date?", opts:["Wednesday","Tuesday","Thursday","The date you happen to check the UI"], correct:1,
+      explain:"The run firing at the end of Tuesday's interval (midnight Wednesday) is closing the books on Tuesday — logical_date equals data_interval_start, which is Tuesday." },
+    { q:"If you don't set a timezone on start_date, what does Airflow assume?", opts:["Your operating system's local timezone","UTC, always","Asia/Kolkata by default","It refuses to run until you set one"], correct:1,
+      explain:"Airflow works in UTC internally by default — 'no timezone set' does not mean 'my local timezone', which is exactly how the schedule-shift bug from class happened." },
+    { q:"What does catchup=True do the first time you unpause a DAG that's been off for 3 weeks?", opts:[
+        "Nothing — it only affects future runs",
+        "It fires every missed scheduled interval since start_date, back to back, until it catches up to now",
+        "It deletes the backlog automatically",
+        "It pauses the DAG permanently"
+      ], correct:1,
+      explain:"catchup=True backfills every missed interval immediately — with a fine-grained schedule left off for weeks, this can queue hundreds of runs at once." },
+    { q:"Which library does Airflow's own documentation recommend for timezone-aware start_dates, over plain datetime?", opts:["pytz","pendulum","arrow","dateutil"], correct:1,
+      explain:"pendulum is the Airflow-recommended library — it handles daylight saving shifts correctly, which plain datetime does not." },
+    { q:"What problem do Datasets (data-aware scheduling) solve that a fixed cron schedule can't?", opts:[
+        "They make DAGs run faster",
+        "They let a DAG trigger the moment upstream data is actually ready, instead of guessing a fixed clock time",
+        "They replace the need for a Scheduler entirely",
+        "They only work with SQL operators"
+      ], correct:1,
+      explain:"Datasets flip scheduling from time-based to event-based — a consumer DAG runs when a producer task marks a Dataset as updated, whenever that actually happens." },
+    { q:"What does retry_exponential_backoff=True change about retries?", opts:[
+        "Nothing, it's cosmetic",
+        "Each retry waits longer than the last, instead of a fixed retry_delay every time",
+        "It retries indefinitely with no limit",
+        "It skips retries entirely and fails immediately"
+      ], correct:1,
+      explain:"Exponential backoff increases the wait between each retry attempt — helpful for not hammering an already-struggling external system." },
+    { q:"A task after a branch shows 'skipped' even though it has nothing to do with the branch decision. What's the most likely cause?", opts:[
+        "A syntax error in that task",
+        "Its default trigger_rule (all_success) can't be satisfied because one of its parents was skipped, not failed",
+        "The scheduler crashed",
+        "It was manually marked skipped by a user"
+      ], correct:1,
+      explain:"all_success is the default trigger_rule for every task — a skipped parent still fails that condition, cascading the skip downstream." },
+    { q:"Which trigger_rule lets a downstream task run as long as nothing upstream actually failed (skips are fine)?", opts:["all_success","all_failed","none_failed","one_failed"], correct:2,
+      explain:"none_failed is exactly the fix used in class for close_kitchen — it tolerates skipped parents but still blocks on a genuine failure." },
+    { q:"Which CLI command runs a single task's code directly in your terminal, without going through the scheduler?", opts:["airflow dags trigger","airflow tasks test","airflow db check","airflow dags list"], correct:1,
+      explain:"airflow tasks test executes just that task's logic locally — no scheduler involvement, no metadata DB run recorded, no XCom stored." },
+    { q:"Why bother with remote logging (S3/GCS/CloudWatch) instead of just reading logs off the worker container?", opts:[
+        "Remote logging makes tasks run faster",
+        "Local logs disappear if the worker container is recycled; remote logging keeps history independent of any single container",
+        "It's required for the Scheduler to function at all",
+        "It replaces the need for the Metadata DB"
+      ], correct:1,
+      explain:"Containers get recycled routinely, especially with the Kubernetes executor — remote logging is what keeps your task history alive beyond any one container's lifetime." }
+  ];
+
+  function buildQuiz(){
+    const container = document.getElementById('quizQuestions');
+    container.innerHTML = '';
+    mcqs.forEach((item, qi)=>{
+      const card = document.createElement('div');
+      card.className = 'q-card';
+      card.innerHTML = `<div class="q-num">Question ${qi+1} of ${mcqs.length}</div><div class="q-text">${item.q}</div>`;
+      item.opts.forEach((opt, oi)=>{
+        const row = document.createElement('label');
+        row.className = 'opt-row';
+        row.innerHTML = `<input type="radio" name="q${qi}" value="${oi}"> ${opt}`;
+        row.querySelector('input').addEventListener('change', ()=>{
+          card.querySelectorAll('.opt-row').forEach(r=>r.classList.remove('picked'));
+          row.classList.add('picked');
+        });
+        card.appendChild(row);
+      });
+      container.appendChild(card);
+    });
+  }
+
+  let lastResults = [];
+
+  function submitQuiz(){
+    let score = 0;
+    lastResults = mcqs.map((item, qi)=>{
+      const picked = document.querySelector(`input[name="q${qi}"]:checked`);
+      const pickedIndex = picked ? parseInt(picked.value) : -1;
+      const isRight = pickedIndex === item.correct;
+      if(isRight) score++;
+      return {
+        q: item.q,
+        yourAnswer: pickedIndex >= 0 ? item.opts[pickedIndex] : "(not answered)",
+        correctAnswer: item.opts[item.correct],
+        explain: item.explain,
+        isRight
+      };
+    });
+    renderResults(score);
+    showView('mcq-results');
+  }
+
+  function renderResults(score){
+    document.getElementById('scoreBig').textContent = `${score} / ${mcqs.length}`;
+    const badge = document.getElementById('scoreBadge');
+    if(score >= PASS_MARK){ badge.textContent = 'Checkpoint cleared'; badge.className = 'badge pass'; }
+    else{ badge.textContent = 'Needs another pass'; badge.className = 'badge fail'; }
+
+    const list = document.getElementById('reviewList');
+    list.innerHTML = '';
+    lastResults.forEach((r, i)=>{
+      const div = document.createElement('div');
+      div.className = 'review-item ' + (r.isRight ? 'right' : 'wrong');
+      div.innerHTML = `
+        <span class="review-tag">${r.isRight ? 'Correct' : 'Incorrect'}</span>
+        <div class="review-q">${i+1}. ${r.q}</div>
+        <div class="review-row"><b>Your answer</b>${r.yourAnswer}</div>
+        ${!r.isRight ? `<div class="review-row"><b>Correct answer</b>${r.correctAnswer}</div>` : ''}
+        <div class="review-explain">${r.explain}</div>
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  function buildEmailBody(){
+    const score = lastResults.filter(r=>r.isRight).length;
+    let body = `Airflow Day 2 Checkpoint Results\nName: ${studentName}\nEmail: ${studentEmail}\nScore: ${score} / ${mcqs.length}\n\n`;
+    lastResults.forEach((r,i)=>{
+      body += `${i+1}. ${r.q}\nYour answer: ${r.yourAnswer}\n`;
+      if(!r.isRight) body += `Correct answer: ${r.correctAnswer}\nWhy: ${r.explain}\n`;
+      body += `\n`;
+    });
+    return body;
+  }
+
+  function emailResults(){
+    const score = lastResults.filter(r=>r.isRight).length;
+    const subject = encodeURIComponent(`Airflow Day 2 Checkpoint — ${studentName} — ${score}/${mcqs.length}`);
+    const body = encodeURIComponent(buildEmailBody());
+    window.location.href = `mailto:${studentEmail}?cc=${INSTRUCTOR_EMAIL}&subject=${subject}&body=${body}`;
+  }
+
+  function copyResults(){
+    navigator.clipboard.writeText(buildEmailBody()).then(()=>{
+      alert('Results copied — paste them anywhere you like.');
+    });
+  }
+
+  /* ---------- Short & Long reveal builders ---------- */
+  const shortQs = [
+    { q:"Why does a run that physically executes on Wednesday morning report logical_date as Tuesday?", a:"The run fires at the end of the interval it's responsible for. A @daily run firing at midnight Wednesday is closing the books on all of Tuesday's data — logical_date always equals data_interval_start, not the moment the run actually happened." },
+    { q:"Why should you always set an explicit timezone (tz=) on a DAG's start_date, even if your team is all in one country?", a:"Airflow defaults to UTC internally. Without an explicit tz, any time you write in your schedule is silently interpreted as UTC — so a later schedule change (like shifting from 6 AM to 5 AM) can shift not just the run time but which calendar date's data actually gets processed, exactly as in today's bug story." },
+    { q:"Why is catchup=False the safer default for most demo, training, or newly-built DAGs?", a:"Without it, turning on a DAG backfills every missed scheduled interval since start_date immediately — for a DAG left off for days or weeks, that can mean hundreds of runs firing back to back and saturating the pool's slots all at once." },
+    { q:"What's the difference between a scheduled DAG run and a manually triggered one?", a:"A scheduled run is created automatically by the Scheduler when its interval is due. A manual trigger fires a run on demand outside the schedule, optionally with a custom config or logical date — both show up in the Grid view but are tagged with a different run type." },
+    { q:"What real problem do Datasets (data-aware scheduling) solve that a well-chosen cron expression can't?", a:"Cron can only guess a fixed clock time by which upstream data is 'probably' ready. Datasets let a consumer DAG react the moment a producer task actually marks the data as updated — removing the guesswork and the buffer time teams usually pad into a cron schedule just in case." },
+    { q:"Why does exponential backoff matter when retrying a call to a flaky external API, instead of just retrying immediately every time?", a:"Retrying instantly and repeatedly against a system that's already struggling can make the problem worse (effectively a mini denial-of-service). Exponential backoff spaces retries progressively further apart, giving the external system room to recover." },
+    { q:"After a BranchPythonOperator, why does a downstream 'join' task often need trigger_rule=none_failed instead of the default?", a:"The default all_success requires every parent to have succeeded — but the branch not taken is marked 'skipped', not 'succeeded', so all_success can never be satisfied and the join task skips forever. none_failed tolerates skips while still blocking on a genuine failure." },
+    { q:"What's the practical difference between airflow tasks test and actually triggering the DAG through the UI?", a:"tasks test runs one task's code in isolation, right in your terminal — no scheduler, no executor, no metadata DB write, and no XComs stored for other tasks to read. Triggering through the UI runs the full DAG for real, through the scheduler and executor, with everything recorded exactly like a normal run." }
+  ];
+
+  const longQs = [
+    { q:"Walk through, step by step, why a DAG scheduled at '6 AM' with no explicit timezone could end up processing the wrong day's data after someone changes the schedule to '5 AM' — and explain how you'd fix it for good, not just patch it once.",
+      a:"Without a timezone set, Airflow interprets '6 AM' and '5 AM' as UTC, not local time. For a team in India (UTC+5:30), a schedule change from 6 AM to 5 AM shifts the actual local fire time by roughly 6.5 hours earlier than intended, not 1 hour. Because IST is ahead of UTC, subtracting that gap can push the computed logical_date back by a full day — the pipeline keeps running on schedule, but starts silently processing 'yesterday' instead of 'today,' and since it doesn't error out, nobody notices until downstream numbers look off. The one-time patch is recalculating the correct UTC-equivalent time by hand — fragile, and it breaks again on the next schedule tweak or a daylight-saving-observing region. The real fix is making the DAG timezone-aware permanently: import pendulum, set start_date=pendulum.datetime(year, month, day, tz='Asia/Kolkata'), and write the schedule in that same local frame going forward — so '5 AM' always means 5 AM IST regardless of who edits the schedule later." },
+    { q:"Design a branching pipeline that reads from three sources in parallel, performs a data-quality check, and either merges the data or raises an alert. Explain your trigger_rule choice for every downstream task, not just the final one — including any task that isn't directly involved in the branch decision.",
+      a:"Three extract tasks (extract_a, extract_b, extract_c) run in parallel as siblings, each keeping the default all_success trigger_rule since they have no branching parents to worry about. A check_quality task (BranchPythonOperator) depends on all three and also keeps all_success — it should only evaluate once every source has actually landed. It returns either 'raise_alert' or 'merge_and_write', and Airflow marks whichever path wasn't chosen as skipped automatically. Both raise_alert and merge_and_write keep their default all_success, since each has exactly one parent (check_quality) which did succeed. The critical decision is the final convergence task — anything that must run regardless of which branch fired, like a 'close_pipeline' or notification step — that task needs trigger_rule=none_failed, because its parents include both the taken path (succeeded) and the skipped path (skipped, not succeeded), and all_success would never be satisfied. Any task further downstream of that convergence point can safely go back to all_success, since by then the skip has already been absorbed." },
+    { q:"A junior engineer says: 'My DAG has been paused for 3 weeks and I just turned it on — now it's flooding with hundreds of runs and pool slots are maxed out.' Explain exactly what happened, and describe two different ways it could have been prevented or fixed.",
+      a:"This is catchup=True in action (or the flag never being set, since backfilling is the honest default without it). The moment the DAG was unpaused, Airflow treated every scheduled interval between start_date and now as 'missed' and queued all of them to run immediately, one after another — for a fine-grained schedule left off for three weeks, that's easily hundreds of runs competing for the same pool slots, which is why everything looks stuck or maxed out rather than just busy. Prevention option one: set catchup=False explicitly when defining the DAG, so unpausing only fires the current/next scheduled interval going forward, ignoring the backlog entirely. Prevention option two, if the historical backfill genuinely is wanted but needs to be controlled: leave catchup=True but pair it with a sensible max_active_runs on the DAG, which caps how many of those backfilled runs can execute concurrently, letting them work through the backlog gradually instead of all firing into the pool at once. If the flood has already happened, the fastest fix is pausing the DAG again, clearing the excess queued runs from the Grid view, then re-enabling with catchup=False before unpausing for good." }
+  ];
+
+  function buildReveal(list, targetId){
+    const container = document.getElementById(targetId);
+    container.dataset.built = "1";
+    container.innerHTML = '';
+    list.forEach((item, i)=>{
+      const card = document.createElement('div');
+      card.className = 'rev-card';
+      card.innerHTML = `
+        <div class="rev-head">
+          <div><span class="qn">Question ${i+1}</span><h4>${item.q}</h4></div>
+          <span class="rev-plus">+</span>
+        </div>
+        <div class="rev-body"><span class="model-lbl">Model Answer</span><p>${item.a}</p></div>
+      `;
+      card.querySelector('.rev-head').addEventListener('click', ()=>{
+        const wasOpen = card.classList.contains('open');
+        card.classList.toggle('open');
+        const body = card.querySelector('.rev-body');
+        body.style.maxHeight = wasOpen ? null : body.scrollHeight + 'px';
+      });
+      container.appendChild(card);
+    });
+  }
+  function buildShort(){ buildReveal(shortQs, 'shortList'); }
+  function buildLong(){ buildReveal(longQs, 'longList'); }
+</script>
+
+</body>
+</html>
