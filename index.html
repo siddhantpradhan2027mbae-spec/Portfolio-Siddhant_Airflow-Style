@@ -3,501 +3,804 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Day 2 Checkpoint | Apache Airflow</title>
+<title>Siddhant Pradhan — Data Engineering & AI Trainer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=Work+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#182B2C; --ink-2:#22393B; --ink-soft: rgba(24,43,44,0.65);
-    --paper:#F7F1E2; --paper-2:#EFE4C8; --paper-3:#FBF8EF;
-    --brass:#C1893C; --brass-2:#E3A855;
-    --tomato:#BD4C29; --tomato-soft:#F4DCCD;
-    --sage:#5F7A52; --sage-soft:#DFE7D3;
-    --violet:#6E5A9E; --violet-soft:#E7E1F2;
-    --blue:#3E6C94; --blue-soft:#DCE7EF;
-    --line: rgba(24,43,44,0.14);
-    --display:'Fraunces', serif; --body:'Work Sans', sans-serif; --mono:'Space Mono', monospace;
-    --radius: 16px; --shadow: 0 10px 30px rgba(24,43,44,0.12);
+    --bg:#070A10;
+    --bg-2:#0D131F;
+    --bg-3:#131B29;
+    --line:rgba(255,255,255,.09);
+    --line-2:rgba(255,255,255,.16);
+    --cyan:#22E6FF;
+    --violet:#B658FF;
+    --lime:#B6FF3C;
+    --amber:#FFC93C;
+    --pink:#FF4D8D;
+    --fg:#F2F5FA;
+    --fg-dim:#93A0B7;
+    --fg-dimmer:#5C6780;
+    --disp: 'Space Grotesk', sans-serif;
+    --body: 'Inter', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
   }
-  *{box-sizing:border-box;}
-  body{ margin:0; background:var(--paper); color:var(--ink); font-family:var(--body); line-height:1.6; -webkit-font-smoothing:antialiased;}
-  ::selection{ background:var(--brass-2); color:var(--ink); }
-  a{color:inherit;}
-
-  .topbar{
-    background:var(--ink); color:var(--paper-3); padding:14px 24px;
-    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;
-    font-family:var(--mono); font-size:0.74rem; text-transform:uppercase; letter-spacing:0.06em;
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--fg);
+    font-family:var(--body);
+    line-height:1.6;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
   }
-  .topbar .brand{ color:var(--brass-2); display:flex; gap:8px; align-items:center;}
-  .topbar .brand::before{ content:"◆"; }
-  .topbar .back{ cursor:pointer; color:rgba(247,241,226,0.6); display:none; }
-  .topbar .back.show{ display:inline-block; }
-  .topbar .back:hover{ color:var(--paper-3); }
+  ::selection{background:var(--cyan); color:#000;}
+  a{color:inherit; text-decoration:none;}
 
-  .wrap{ max-width:900px; margin:0 auto; padding: 56px 24px 90px; }
-  .view{ display:none; animation: fade .35s ease; }
-  .view.active{ display:block; }
-  @keyframes fade{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
-
-  .eyebrow{ font-family:var(--mono); text-transform:uppercase; letter-spacing:0.12em; font-size:0.76rem; color:var(--tomato); margin:0 0 10px;}
-  h1.pagetitle{ font-family:var(--display); font-weight:700; font-size:clamp(1.9rem,4vw,2.7rem); margin:0 0 14px; letter-spacing:-0.01em;}
-  .pagesub{ color:var(--ink-soft); max-width:560px; margin:0 0 40px; font-size:1.02rem;}
-
-  /* ---------- landing cards ---------- */
-  .card-grid{ display:grid; grid-template-columns:1fr; gap:16px; }
-  @media(min-width:760px){ .card-grid{ grid-template-columns:repeat(4,1fr);} }
-  .opt-card{
-    background:var(--paper-3); border:1px solid var(--line); border-radius:var(--radius);
-    padding:28px 18px; text-align:center; cursor:pointer; transition: all .18s ease;
+  /* ---------- background texture ---------- */
+  .grid-bg{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:64px 64px;
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+    opacity:.5;
   }
-  .opt-card:hover{ transform:translateY(-4px); box-shadow:var(--shadow); border-color:var(--brass);}
-  .opt-icon{
-    width:56px; height:56px; border-radius:50%; margin:0 auto 16px; display:flex; align-items:center; justify-content:center;
-    font-size:1.5rem;
+  .glow{position:fixed; border-radius:50%; filter:blur(120px); z-index:0; pointer-events:none;}
+  .glow-1{width:640px; height:640px; top:-220px; left:-160px; background:radial-gradient(circle, rgba(34,230,255,.20), transparent 70%);}
+  .glow-2{width:600px; height:600px; top:20%; right:-200px; background:radial-gradient(circle, rgba(182,88,255,.18), transparent 70%);}
+  .glow-3{width:500px; height:500px; bottom:0; left:10%; background:radial-gradient(circle, rgba(182,255,60,.10), transparent 70%);}
+
+  section, header, footer{position:relative; z-index:1;}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 32px;}
+
+  /* ---------- nav ---------- */
+  nav{
+    position:fixed; top:0; left:0; right:0; z-index:50;
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    background:rgba(7,10,16,.72);
+    border-bottom:1px solid var(--line);
   }
-  .opt-card h4{ font-family:var(--display); font-size:1.15rem; margin:0 0 4px;}
-  .opt-card p{ margin:0; color:var(--ink-soft); font-size:0.86rem; font-family:var(--mono); text-transform:uppercase; letter-spacing:0.04em;}
-  .ic-mcq{ background:var(--violet-soft); color:var(--violet); }
-  .ic-short{ background:var(--blue-soft); color:var(--blue); }
-  .ic-long{ background:var(--tomato-soft); color:var(--tomato); }
-  .ic-lab{ background:var(--sage-soft); color:var(--sage); }
-
-  /* ---------- form ---------- */
-  .form-card{ background:var(--paper-3); border:1px solid var(--line); border-radius:var(--radius); padding:32px; max-width:460px; box-shadow:var(--shadow);}
-  .field{ margin-bottom:18px; }
-  .field label{ display:block; font-family:var(--mono); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-soft); margin-bottom:6px;}
-  .field input{
-    width:100%; padding:12px 14px; border-radius:10px; border:1px solid var(--line); background:var(--paper);
-    font-family:var(--body); font-size:0.98rem; color:var(--ink);
+  .nav-inner{max-width:1180px; margin:0 auto; padding:16px 32px; display:flex; align-items:center; justify-content:space-between;}
+  .nav-logo{font-family:var(--mono); font-size:14px; letter-spacing:.04em; color:var(--fg); display:flex; align-items:center; gap:8px;}
+  .nav-logo .dot{width:8px; height:8px; border-radius:50%; background:var(--lime); box-shadow:0 0 12px var(--lime); animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;} 50%{opacity:.35;}}
+  .nav-links{display:flex; gap:28px; font-size:13px; font-family:var(--mono);}
+  .nav-links a{color:var(--fg-dim); transition:color .2s; position:relative; padding:4px 0;}
+  .nav-links a:hover, .nav-links a.active{color:var(--cyan);}
+  .nav-cta{
+    font-family:var(--mono); font-size:12px; padding:9px 16px; border-radius:100px;
+    border:1px solid var(--line-2); color:var(--fg); white-space:nowrap;
+    transition:all .2s;
   }
-  .field input:focus{ outline:2px solid var(--brass-2); outline-offset:1px; }
-  .btn{
-    display:inline-block; background:var(--ink); color:var(--paper-3); border:none; padding:13px 26px;
-    border-radius:999px; font-family:var(--mono); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;
-    cursor:pointer; font-weight:700;
+  .nav-cta:hover{border-color:var(--lime); color:var(--lime); box-shadow:0 0 20px rgba(182,255,60,.25);}
+  .nav-toggle{display:none; flex-direction:column; gap:5px; cursor:pointer; background:none; border:none;}
+  .nav-toggle span{width:22px; height:2px; background:var(--fg);}
+
+  /* ---------- hero ---------- */
+  header.hero{
+    min-height:100vh; display:flex; flex-direction:column; justify-content:center;
+    padding:140px 0 80px;
   }
-  .btn:hover{ background:var(--ink-2); }
-  .btn.brass{ background:var(--brass-2); color:var(--ink); }
-  .btn.brass:hover{ background:var(--brass); }
-  .btn.ghost{ background:transparent; border:1px solid var(--line); color:var(--ink); }
-  .err{ color:var(--tomato); font-size:0.82rem; margin-top:6px; display:none; font-family:var(--mono);}
-
-  /* ---------- quiz ---------- */
-  .q-card{ background:var(--paper-3); border:1px solid var(--line); border-radius:var(--radius); padding:24px; margin-bottom:16px;}
-  .q-num{ font-family:var(--mono); font-size:0.72rem; text-transform:uppercase; color:var(--brass); letter-spacing:0.06em; margin-bottom:8px;}
-  .q-text{ font-family:var(--display); font-size:1.15rem; margin:0 0 16px; }
-  .opt-row{ display:block; padding:12px 14px; border:1px solid var(--line); border-radius:10px; margin-bottom:8px; cursor:pointer; transition: all .12s ease;}
-  .opt-row:hover{ border-color:var(--brass); }
-  .opt-row input{ margin-right:10px; }
-  .opt-row.picked{ border-color:var(--brass); background:var(--paper-2); }
-
-  .sticky-submit{ position:sticky; bottom:16px; text-align:center; margin-top:26px; }
-  .sticky-submit .btn{ box-shadow:var(--shadow); }
-
-  /* ---------- results ---------- */
-  .score-hero{
-    background:var(--ink); color:var(--paper-3); border-radius:var(--radius); padding:36px; text-align:center; margin-bottom:28px;
+  .eyebrow{
+    font-family:var(--mono); font-size:12.5px; color:var(--lime); letter-spacing:.14em; text-transform:uppercase;
+    display:inline-flex; align-items:center; gap:10px; margin-bottom:26px;
+    border:1px solid rgba(182,255,60,.35); padding:7px 14px; border-radius:100px;
+    background:rgba(182,255,60,.06);
   }
-  .score-hero .big{ font-family:var(--display); font-size:3.4rem; color:var(--brass-2); font-weight:700; }
-  .score-hero .lbl{ font-family:var(--mono); font-size:0.76rem; text-transform:uppercase; letter-spacing:0.08em; color:rgba(247,241,226,0.6);}
-  .badge{ display:inline-block; margin-top:14px; padding:6px 16px; border-radius:999px; font-family:var(--mono); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.06em;}
-  .badge.pass{ background:var(--sage-soft); color:var(--sage); }
-  .badge.fail{ background:var(--tomato-soft); color:var(--tomato); }
+  .hero h1{
+    font-family:var(--disp); font-weight:700;
+    font-size:clamp(44px, 8vw, 96px); line-height:.98; letter-spacing:-.02em;
+    background:linear-gradient(120deg, #fff 30%, var(--cyan) 70%, var(--violet) 100%);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    margin-bottom:20px;
+  }
+  .hero .role{
+    font-family:var(--disp); font-weight:600; font-size:clamp(18px,2.6vw,26px); color:var(--fg-dim);
+    margin-bottom:28px;
+  }
+  .hero .role b{color:var(--fg); font-weight:600;}
+  .hero p.tagline{
+    max-width:640px; font-size:18px; color:var(--fg-dim); margin-bottom:40px;
+  }
+  .hero p.tagline strong{color:var(--fg); font-weight:600;}
+  .hero-badges{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:56px;}
+  .badge{
+    font-family:var(--mono); font-size:12.5px; padding:8px 14px; border-radius:8px;
+    border:1px solid var(--line-2); background:var(--bg-2); color:var(--fg-dim);
+    display:flex; align-items:center; gap:7px;
+  }
+  .badge::before{content:''; width:6px; height:6px; border-radius:50%; background:var(--cyan);}
+  .hero-actions{display:flex; gap:16px; flex-wrap:wrap; align-items:center;}
+  .btn-primary{
+    font-family:var(--mono); font-weight:500; font-size:14px; padding:15px 26px; border-radius:10px;
+    background:var(--cyan); color:#04121a; display:inline-flex; align-items:center; gap:10px;
+    box-shadow:0 0 0 rgba(34,230,255,0); transition:box-shadow .25s, transform .2s;
+  }
+  .btn-primary:hover{box-shadow:0 8px 40px rgba(34,230,255,.35); transform:translateY(-2px);}
+  .btn-ghost{
+    font-family:var(--mono); font-size:14px; padding:15px 22px; border-radius:10px;
+    border:1px solid var(--line-2); color:var(--fg-dim); transition:all .2s;
+  }
+  .btn-ghost:hover{color:var(--fg); border-color:var(--fg-dim);}
+  .scroll-cue{
+    position:absolute; bottom:36px; left:50%; transform:translateX(-50%);
+    font-family:var(--mono); font-size:11px; color:var(--fg-dimmer); text-align:center;
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+  }
+  .scroll-cue .line{width:1px; height:32px; background:linear-gradient(var(--fg-dimmer), transparent); animation:scrolldown 1.8s infinite;}
+  @keyframes scrolldown{0%{opacity:0; transform:scaleY(0); transform-origin:top;} 40%{opacity:1; transform:scaleY(1); transform-origin:top;} 60%{opacity:1; transform:scaleY(1); transform-origin:bottom;} 100%{opacity:0; transform:scaleY(0); transform-origin:bottom;}}
 
-  .review-item{ background:var(--paper-3); border:1px solid var(--line); border-left:5px solid var(--line); border-radius:var(--radius); padding:20px; margin-bottom:12px;}
-  .review-item.right{ border-left-color:var(--sage); }
-  .review-item.wrong{ border-left-color:var(--tomato); }
-  .review-tag{ font-family:var(--mono); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px; display:inline-block; padding:3px 10px; border-radius:999px;}
-  .review-item.right .review-tag{ background:var(--sage-soft); color:var(--sage);}
-  .review-item.wrong .review-tag{ background:var(--tomato-soft); color:var(--tomato);}
-  .review-q{ font-family:var(--display); font-size:1.02rem; margin:6px 0 10px;}
-  .review-row{ font-size:0.9rem; margin:3px 0; }
-  .review-row b{ font-family:var(--mono); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); margin-right:6px;}
-  .review-explain{ margin-top:10px; padding-top:10px; border-top:1px dashed var(--line); color:var(--ink-soft); font-size:0.9rem;}
+  /* ---------- section shared ---------- */
+  .section{padding:120px 0;}
+  .section-head{margin-bottom:64px; max-width:720px;}
+  .kicker{
+    font-family:var(--mono); font-size:12px; color:var(--violet); letter-spacing:.14em; text-transform:uppercase;
+    margin-bottom:14px; display:block;
+  }
+  .section-head h2{
+    font-family:var(--disp); font-weight:600; font-size:clamp(28px,4vw,44px); letter-spacing:-.01em; margin-bottom:16px;
+  }
+  .section-head p{color:var(--fg-dim); font-size:16.5px; max-width:600px;}
+  .reveal{opacity:0; transform:translateY(28px); transition:opacity .7s ease, transform .7s ease;}
+  .reveal.in{opacity:1; transform:translateY(0);}
 
-  .action-row{ display:flex; gap:12px; flex-wrap:wrap; margin-top:24px; }
+  /* ---------- DAG pipeline (signature element) ---------- */
+  .dag-wrap{position:relative; padding:20px 0 40px; overflow-x:auto; overflow-y:visible;}
+  .dag-note{font-family:var(--mono); font-size:12px; color:var(--fg-dimmer); margin-bottom:36px; display:flex; align-items:center; gap:10px;}
+  .dag-note .lg{width:12px; height:12px; border-radius:3px;}
+  .dag-legend{display:flex; gap:22px; flex-wrap:wrap; margin-bottom:44px;}
+  .dag-legend .item{display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:11.5px; color:var(--fg-dim);}
+  .dag-legend .sw{width:10px; height:10px; border-radius:3px;}
 
-  /* ---------- flip / reveal cards for short & long ---------- */
-  .rev-card{ background:var(--paper-3); border:1px solid var(--line); border-radius:var(--radius); margin-bottom:14px; overflow:hidden;}
-  .rev-head{ display:flex; justify-content:space-between; align-items:center; padding:20px 24px; cursor:pointer; gap:16px;}
-  .rev-head .qn{ font-family:var(--mono); font-size:0.7rem; color:var(--brass); text-transform:uppercase; letter-spacing:0.06em; display:block; margin-bottom:6px;}
-  .rev-head h4{ font-family:var(--display); font-size:1.08rem; margin:0; font-weight:600; }
-  .rev-plus{ font-family:var(--mono); font-size:1.3rem; color:var(--brass); flex-shrink:0; transition: transform .2s ease;}
-  .rev-card.open .rev-plus{ transform:rotate(45deg); }
-  .rev-body{ max-height:0; overflow:hidden; transition:max-height .3s ease; padding:0 24px;}
-  .rev-card.open .rev-body{ padding-bottom:22px; }
-  .rev-body p{ margin:0.5em 0; color:var(--ink-soft); font-size:0.94rem;}
-  .rev-body .model-lbl{ font-family:var(--mono); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--sage); margin-bottom:6px; display:block;}
+  .dag-track{
+    display:flex; align-items:flex-start; gap:0; min-width:960px; position:relative; padding:10px 0 30px;
+  }
+  .dag-node{
+    flex:1; min-width:150px; position:relative; padding:0 8px;
+  }
+  .dag-card{
+    background:var(--bg-2); border:1px solid var(--line-2); border-radius:14px; padding:20px 16px;
+    position:relative; cursor:pointer; transition:transform .25s, border-color .25s, box-shadow .25s;
+    min-height:150px;
+  }
+  .dag-card:hover{transform:translateY(-6px); border-color:var(--cyan); box-shadow:0 16px 40px rgba(34,230,255,.15);}
+  .dag-card .status{position:absolute; top:16px; right:16px; width:9px; height:9px; border-radius:50%;}
+  .dag-card .status.done{background:var(--lime); box-shadow:0 0 10px var(--lime);}
+  .dag-card .status.now{background:var(--cyan); box-shadow:0 0 10px var(--cyan); animation:pulse 1.6s infinite;}
+  .dag-card .status.next{background:var(--violet); box-shadow:0 0 10px var(--violet);}
+  .dag-card .yr{font-family:var(--mono); font-size:10.5px; color:var(--fg-dimmer); letter-spacing:.06em; margin-bottom:10px; text-transform:uppercase;}
+  .dag-card h4{font-family:var(--disp); font-size:15.5px; font-weight:600; margin-bottom:6px; line-height:1.25;}
+  .dag-card .org{font-family:var(--mono); font-size:11.5px; color:var(--fg-dim);}
+  .dag-connector{
+    position:absolute; top:70px; left:calc(100% - 8px); width:24px; height:2px; z-index:2;
+  }
+  .dag-connector svg{overflow:visible;}
+  .dag-detail{
+    max-height:0; overflow:hidden; transition:max-height .35s ease;
+    font-size:13px; color:var(--fg-dim); margin-top:10px; line-height:1.55;
+  }
+  .dag-card.open .dag-detail{max-height:200px; margin-top:12px;}
+  .dag-card .expand-cue{font-family:var(--mono); font-size:10px; color:var(--fg-dimmer); margin-top:12px;}
 
-  /* ---------- lab ---------- */
-  .lab-card{ background:var(--paper-3); border:1px solid var(--line); border-radius:var(--radius); padding:30px; box-shadow:var(--shadow);}
-  .lab-card h3{ font-family:var(--display); font-size:1.4rem; margin:0 0 14px;}
-  .lab-card ul{ padding-left:20px; }
-  .lab-card li{ margin-bottom:10px; color:var(--ink-soft); font-size:0.96rem;}
-  .lab-tag{ display:inline-block; font-family:var(--mono); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.06em; background:var(--sage-soft); color:var(--sage); padding:5px 12px; border-radius:999px; margin-bottom:16px;}
-  .lab-note{ background:var(--paper-2); border-radius:12px; padding:16px 18px; margin-top:20px; font-size:0.88rem; color:var(--ink-soft);}
+  .branch-track{
+    display:flex; gap:16px; margin-top:8px; min-width:960px; flex-wrap:nowrap;
+    padding-left:8px;
+  }
+  .branch-node{
+    flex:1; min-width:150px; background:var(--bg-2); border:1px dashed var(--line-2);
+    border-radius:12px; padding:16px; font-size:12.5px;
+  }
+  .branch-node .tag{font-family:var(--mono); font-size:10px; color:var(--amber); text-transform:uppercase; letter-spacing:.06em; display:block; margin-bottom:6px;}
+  .branch-node b{font-family:var(--disp); font-size:14px; display:block; margin-bottom:3px; font-weight:600;}
+  .branch-node span.org{color:var(--fg-dim); font-family:var(--mono); font-size:11px;}
 
-  footer{ text-align:center; padding:30px 24px 50px; font-family:var(--mono); font-size:0.74rem; color:var(--ink-soft);}
-  footer .name{ color:var(--tomato); font-weight:700; }
+  /* ---------- stats ---------- */
+  .stats-grid{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
+    background:var(--line); border:1px solid var(--line); border-radius:16px; overflow:hidden;
+  }
+  .stat-tile{background:var(--bg-2); padding:36px 26px;}
+  .stat-tile .num{font-family:var(--disp); font-weight:700; font-size:clamp(26px,3.4vw,38px); line-height:1;}
+  .stat-tile .num span{font-size:.5em; color:var(--fg-dimmer); font-family:var(--mono); font-weight:400;}
+  .stat-tile .lbl{font-family:var(--mono); font-size:11.5px; color:var(--fg-dim); margin-top:10px; text-transform:uppercase; letter-spacing:.04em;}
+  .stat-tile:nth-child(1) .num{color:var(--cyan);}
+  .stat-tile:nth-child(2) .num{color:var(--violet);}
+  .stat-tile:nth-child(3) .num{color:var(--lime);}
+  .stat-tile:nth-child(4) .num{color:var(--amber);}
+
+  /* ---------- curriculum pipeline ---------- */
+  .curric-track{display:grid; grid-template-columns:repeat(5,1fr); gap:16px;}
+  .curric-card{
+    background:var(--bg-2); border:1px solid var(--line); border-radius:14px; padding:24px 18px;
+    position:relative; transition:border-color .25s, transform .25s;
+  }
+  .curric-card:hover{border-color:var(--violet); transform:translateY(-5px);}
+  .curric-card .step{
+    font-family:var(--mono); font-size:11px; color:var(--fg-dimmer); margin-bottom:16px;
+  }
+  .curric-card .ic{
+    width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+    background:rgba(182,88,255,.12); border:1px solid rgba(182,88,255,.3); margin-bottom:16px;
+  }
+  .curric-card .ic svg{width:20px; height:20px; stroke:var(--violet);}
+  .curric-card h4{font-family:var(--disp); font-size:16px; font-weight:600; margin-bottom:8px;}
+  .curric-card p{font-size:12.5px; color:var(--fg-dim);}
+  .curric-arrow{
+    display:flex; align-items:center; justify-content:center; color:var(--fg-dimmer); font-size:18px;
+  }
+
+  /* ---------- skills ---------- */
+  .skill-groups{display:grid; grid-template-columns:repeat(2,1fr); gap:20px;}
+  .skill-card{background:var(--bg-2); border:1px solid var(--line); border-radius:16px; padding:28px;}
+  .skill-card .head{display:flex; align-items:center; gap:12px; margin-bottom:18px;}
+  .skill-card .ic{width:36px; height:36px; border-radius:9px; display:flex; align-items:center; justify-content:center; background:var(--bg-3); border:1px solid var(--line-2);}
+  .skill-card .ic svg{width:18px; height:18px;}
+  .skill-card h4{font-family:var(--disp); font-weight:600; font-size:16px;}
+  .chip-row{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{
+    font-family:var(--mono); font-size:12px; padding:7px 12px; border-radius:7px;
+    background:var(--bg-3); border:1px solid var(--line-2); color:var(--fg-dim);
+  }
+
+  /* ---------- achievements ---------- */
+  .ach-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+  .ach-card{
+    background:var(--bg-2); border:1px solid var(--line); border-radius:14px; padding:24px;
+    position:relative; overflow:hidden;
+  }
+  .ach-card::before{
+    content:''; position:absolute; top:0; left:0; width:100%; height:3px;
+    background:linear-gradient(90deg, var(--amber), transparent);
+  }
+  .ach-card .pill{
+    font-family:var(--mono); font-size:10px; color:var(--amber); text-transform:uppercase;
+    letter-spacing:.06em; border:1px solid rgba(255,201,60,.35); padding:4px 10px; border-radius:100px;
+    display:inline-block; margin-bottom:14px; background:rgba(255,201,60,.07);
+  }
+  .ach-card h4{font-family:var(--disp); font-weight:600; font-size:15.5px; margin-bottom:8px; line-height:1.3;}
+  .ach-card p{font-size:12.5px; color:var(--fg-dim);}
+
+  /* ---------- certs ---------- */
+  .cert-strip{
+    display:flex; gap:16px; overflow-x:auto; padding-bottom:12px;
+  }
+  .cert-chip{
+    flex:0 0 auto; background:var(--bg-2); border:1px solid var(--line); border-radius:12px;
+    padding:18px 22px; min-width:200px;
+  }
+  .cert-chip .n{font-family:var(--disp); font-weight:700; font-size:24px; color:var(--lime);}
+  .cert-chip .t{font-family:var(--mono); font-size:11.5px; color:var(--fg-dim); margin-top:4px;}
+
+  /* ---------- testimonials ---------- */
+  .testi-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:20px;}
+  .testi-card{
+    background:var(--bg-2); border:1px solid var(--line); border-radius:16px; padding:32px;
+    position:relative;
+  }
+  .testi-card .quote-mark{font-family:var(--disp); font-size:44px; color:var(--violet); opacity:.4; line-height:1; margin-bottom:6px;}
+  .testi-card p{font-size:14.5px; color:var(--fg-dim); margin-bottom:22px; line-height:1.65;}
+  .testi-who{display:flex; align-items:center; gap:12px;}
+  .testi-avatar{
+    width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(135deg, var(--cyan), var(--violet)); font-family:var(--disp); font-weight:700; font-size:13px; color:#04121a;
+  }
+  .testi-who .name{font-family:var(--disp); font-weight:600; font-size:13.5px;}
+  .testi-who .role{font-family:var(--mono); font-size:11px; color:var(--fg-dimmer);}
+
+  /* ---------- featured moments ---------- */
+  .feature-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px;}
+  .feature-card{background:var(--bg-2); border:1px solid var(--line); border-radius:16px; overflow:hidden;}
+  .feature-img{
+    height:170px; position:relative; display:flex; align-items:center; justify-content:center;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(34,230,255,.25), transparent 60%),
+      radial-gradient(circle at 80% 80%, rgba(182,88,255,.25), transparent 60%),
+      var(--bg-3);
+    border-bottom:1px solid var(--line);
+  }
+  .feature-img .ph-label{
+    font-family:var(--mono); font-size:10.5px; color:var(--fg-dimmer); text-align:center; padding:0 20px;
+  }
+  .feature-body{padding:20px;}
+  .feature-body h4{font-family:var(--disp); font-weight:600; font-size:14.5px; margin-bottom:10px; line-height:1.35;}
+  .feature-stats{display:flex; gap:14px; font-family:var(--mono); font-size:11.5px; color:var(--fg-dimmer);}
+  .feature-stats span{color:var(--cyan);}
+
+  /* ---------- connect / footer ---------- */
+  .connect-box{
+    background:linear-gradient(135deg, rgba(34,230,255,.08), rgba(182,88,255,.08));
+    border:1px solid var(--line-2); border-radius:24px; padding:64px 48px; text-align:center;
+  }
+  .connect-box h2{font-family:var(--disp); font-weight:700; font-size:clamp(28px,4vw,42px); margin-bottom:16px;}
+  .connect-box p{color:var(--fg-dim); max-width:520px; margin:0 auto 36px;}
+  .connect-links{display:flex; gap:14px; justify-content:center; flex-wrap:wrap;}
+
+  footer{padding:48px 0 32px; border-top:1px solid var(--line); margin-top:40px;}
+  .footer-inner{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;}
+  .footer-inner p{font-family:var(--mono); font-size:12px; color:var(--fg-dimmer);}
+
+  /* ---------- responsive ---------- */
+  @media (max-width:860px){
+    .nav-links{display:none;}
+    .nav-toggle{display:flex;}
+    .stats-grid{grid-template-columns:repeat(2,1fr);}
+    .skill-groups{grid-template-columns:1fr;}
+    .ach-grid{grid-template-columns:1fr 1fr;}
+    .testi-grid{grid-template-columns:1fr;}
+    .feature-grid{grid-template-columns:1fr;}
+    .curric-track{grid-template-columns:1fr; gap:10px;}
+    .curric-arrow{transform:rotate(90deg); padding:4px 0;}
+    .section{padding:80px 0;}
+    .wrap{padding:0 20px;}
+    .connect-box{padding:44px 24px;}
+  }
+  @media (max-width:560px){
+    .ach-grid{grid-template-columns:1fr;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important;}
+  }
 </style>
 </head>
 <body>
 
-<div class="topbar">
-  <span class="brand">Day 2 Checkpoint</span>
-  <span class="back" id="backBtn" onclick="showView('landing')">← Back to menu</span>
-</div>
+<div class="grid-bg"></div>
+<div class="glow glow-1"></div>
+<div class="glow glow-2"></div>
+<div class="glow glow-3"></div>
 
-<div class="wrap">
+<nav>
+  <div class="nav-inner">
+    <div class="nav-logo"><span class="dot"></span> SIDDHANT_PRADHAN.exe</div>
+    <div class="nav-links">
+      <a href="#pipeline">career</a>
+      <a href="#teach">curriculum</a>
+      <a href="#skills">skills</a>
+      <a href="#wins">wins</a>
+      <a href="#connect">connect</a>
+    </div>
+    <a class="nav-cta" href="#connect">Get in touch →</a>
+  </div>
+</nav>
 
-  <!-- LANDING -->
-  <section class="view active" id="landing">
-    <p class="eyebrow">Module 3 & 4 · Practice What You Learned</p>
-    <h1 class="pagetitle">Pick how you want to practice.</h1>
-    <p class="pagesub">Everything here covers today's two modules — Scheduling & Triggers, and Web UI/CLI/Monitoring. Do the MCQs first; it's graded and emailed to you automatically.</p>
+<!-- ================= HERO ================= -->
+<header class="hero wrap">
+  <div class="eyebrow">● now training at IntelliBI</div>
+  <h1>SIDDHANT<br>PRADHAN</h1>
+  <div class="role">Data Engineering &amp; AI Trainer — <b>Apache Airflow · Python · PySpark · Fabric · GenAI</b></div>
+  <p class="tagline">Five years keeping a bank's production pipelines alive — nights, weekends, national holidays included. <strong>Now I teach the same pipelines I run, using the scars to save you the debugging time.</strong></p>
+  <div class="hero-badges">
+    <span class="badge">5+ yrs · BFSI Production Support</span>
+    <span class="badge">AI Fridays Hackathon — Winner, Global Finale</span>
+    <span class="badge">500+ students trained</span>
+    <span class="badge">22,900+ LinkedIn followers</span>
+  </div>
+  <div class="hero-actions">
+    <a class="btn-primary" href="#pipeline">See the career DAG ↓</a>
+    <a class="btn-ghost" href="#connect">Connect on LinkedIn</a>
+  </div>
+</header>
 
-    <div class="card-grid">
-      <div class="opt-card" onclick="showView('mcq-register')">
-        <div class="opt-icon ic-mcq">❓</div>
-        <h4>MCQs</h4>
-        <p>10 Questions · Graded</p>
+<!-- ================= CAREER AS A DAG ================= -->
+<section class="section wrap" id="pipeline">
+  <div class="section-head reveal">
+    <span class="kicker">// signature_view</span>
+    <h2>My career, rendered the way I'll teach you to render pipelines</h2>
+    <p>You're here to learn Airflow — so here's my own journey as a DAG: a chain of tasks, each one a dependency for the next. Click a node to expand it.</p>
+  </div>
+
+  <div class="dag-legend reveal">
+    <div class="item"><span class="sw" style="background:var(--lime)"></span> completed</div>
+    <div class="item"><span class="sw" style="background:var(--cyan)"></span> currently running</div>
+    <div class="item"><span class="sw" style="background:var(--violet)"></span> upstream / parallel task</div>
+  </div>
+
+  <div class="dag-wrap reveal">
+    <div class="dag-track" id="dagTrack">
+      <div class="dag-node">
+        <div class="dag-card" onclick="this.classList.toggle('open')">
+          <span class="status done"></span>
+          <div class="yr">Sep 2021</div>
+          <h4>Trainee</h4>
+          <div class="org">Tata Consultancy Services</div>
+          <div class="dag-detail">Onboarded after clearing multiple offers — chose TCS for the BFSI exposure. First 7 months: learning the account, the tooling, the domain.</div>
+          <div class="expand-cue">tap to expand ›</div>
+        </div>
+        <div class="dag-connector"><svg width="24" height="2"><line x1="0" y1="1" x2="24" y2="1" stroke="var(--lime)" stroke-width="2"/></svg></div>
       </div>
-      <div class="opt-card" onclick="showView('shortq')">
-        <div class="opt-icon ic-short">📝</div>
-        <h4>Short Qs</h4>
-        <p>8 Questions</p>
+
+      <div class="dag-node">
+        <div class="dag-card" onclick="this.classList.toggle('open')">
+          <span class="status done"></span>
+          <div class="yr">Mar 2022</div>
+          <h4>Assistant System Engineer</h4>
+          <div class="org">TCS · RBC Account</div>
+          <div class="dag-detail">Moved onto live production support for Royal Bank of Canada applications. Started owning incidents, not just watching them.</div>
+          <div class="expand-cue">tap to expand ›</div>
+        </div>
+        <div class="dag-connector"><svg width="24" height="2"><line x1="0" y1="1" x2="24" y2="1" stroke="var(--lime)" stroke-width="2"/></svg></div>
       </div>
-      <div class="opt-card" onclick="showView('longq')">
-        <div class="opt-icon ic-long">📖</div>
-        <h4>Long Qs</h4>
-        <p>3 Questions</p>
+
+      <div class="dag-node">
+        <div class="dag-card" onclick="this.classList.toggle('open')">
+          <span class="status done"></span>
+          <div class="yr">Apr 2024</div>
+          <h4>System Engineer</h4>
+          <div class="org">TCS · RBC Account</div>
+          <div class="dag-detail">Full ownership of critical BFSI production support — 99.9% uptime, Airflow-driven automation, SFTP migrations, zero-SLA-miss quarters.</div>
+          <div class="expand-cue">tap to expand ›</div>
+        </div>
+        <div class="dag-connector"><svg width="24" height="2"><line x1="0" y1="1" x2="24" y2="1" stroke="var(--cyan)" stroke-width="2"/></svg></div>
       </div>
-      <div class="opt-card" onclick="showView('codelab')">
-        <div class="opt-icon ic-lab">💻</div>
-        <h4>Code Lab</h4>
-        <p>Try It Yourself</p>
+
+      <div class="dag-node">
+        <div class="dag-card" onclick="this.classList.toggle('open')">
+          <span class="status now"></span>
+          <div class="yr">May 2026 — Present</div>
+          <h4>IT Analyst</h4>
+          <div class="org">TCS · RBC Account</div>
+          <div class="dag-detail">Current role. Production support + building AI agents on RBC Assist Pro, while training the next chapter: teaching data engineering at IntelliBI.</div>
+          <div class="expand-cue">tap to expand ›</div>
+        </div>
+        <div class="dag-connector"><svg width="24" height="2"><line x1="0" y1="1" x2="24" y2="1" stroke="var(--violet)" stroke-width="2" stroke-dasharray="4 3"/></svg></div>
+      </div>
+
+      <div class="dag-node">
+        <div class="dag-card" onclick="this.classList.toggle('open')" style="border-color:rgba(182,88,255,.4)">
+          <span class="status next"></span>
+          <div class="yr">Now branching</div>
+          <h4>GenAI Engineer + Trainer</h4>
+          <div class="org">IntelliBI · Open lane</div>
+          <div class="dag-detail">Where the DAG is headed: AI engineering depth, Executive MBA, and teaching Airflow → Python → PySpark → Fabric → AI to you.</div>
+          <div class="expand-cue">tap to expand ›</div>
+        </div>
       </div>
     </div>
-  </section>
 
-  <!-- MCQ REGISTER -->
-  <section class="view" id="mcq-register">
-    <p class="eyebrow">MCQ Checkpoint</p>
-    <h1 class="pagetitle">Before you start...</h1>
-    <p class="pagesub">Enter your details so your score can be recorded and emailed to you at the end.</p>
-
-    <div class="form-card">
-      <div class="field">
-        <label for="sName">Full name</label>
-        <input type="text" id="sName" placeholder="e.g. Aditi Rao">
+    <div class="branch-track">
+      <div class="branch-node">
+        <span class="tag">upstream task</span>
+        <b>Technical Developer</b>
+        <span class="org">RBC (via TCS) · 2021–ongoing</span>
       </div>
-      <div class="field">
-        <label for="sEmail">Email address</label>
-        <input type="email" id="sEmail" placeholder="you@example.com">
+      <div class="branch-node">
+        <span class="tag">upstream task</span>
+        <b>Technical Developer</b>
+        <span class="org">CACEIS, Luxembourg (remote) · 2023–24</span>
       </div>
-      <div class="err" id="regErr">Please fill in both fields with a valid email.</div>
-      <button class="btn brass" onclick="startQuiz()">Start Quiz →</button>
+      <div class="branch-node">
+        <span class="tag">parallel task</span>
+        <b>Full-Stack Trainer</b>
+        <span class="org">upGrad KnowledgeHut · 500+ students, 2022–25</span>
+      </div>
+      <div class="branch-node">
+        <span class="tag">parallel task</span>
+        <b>EC President</b>
+        <span class="org">ANON Global Foundation · since 2021</span>
+      </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- MCQ QUIZ -->
-  <section class="view" id="mcq-quiz">
-    <p class="eyebrow">MCQ Checkpoint · 10 Questions</p>
-    <h1 class="pagetitle">Answer all, then submit.</h1>
-    <p class="pagesub">You can change an answer any time before hitting submit at the bottom.</p>
-    <div id="quizQuestions"></div>
-    <div class="sticky-submit">
-      <button class="btn brass" onclick="submitQuiz()">Submit Quiz</button>
+<!-- ================= STATS ================= -->
+<section class="section wrap">
+  <div class="section-head reveal">
+    <span class="kicker">// by_the_numbers</span>
+    <h2>Not slideware. Numbers from the actual run logs.</h2>
+  </div>
+  <div class="stats-grid reveal">
+    <div class="stat-tile">
+      <div class="num">99.9<span>%</span></div>
+      <div class="lbl">Production uptime maintained</div>
     </div>
-  </section>
-
-  <!-- MCQ RESULTS -->
-  <section class="view" id="mcq-results">
-    <p class="eyebrow">MCQ Checkpoint · Results</p>
-    <h1 class="pagetitle" id="resultsTitle">Here's how you did.</h1>
-
-    <div class="score-hero">
-      <div class="lbl">Your score</div>
-      <div class="big" id="scoreBig">0 / 10</div>
-      <div class="badge" id="scoreBadge"></div>
+    <div class="stat-tile">
+      <div class="num">500<span>+</span></div>
+      <div class="lbl">Students trained, MERN/MEAN</div>
     </div>
-
-    <div id="reviewList"></div>
-
-    <div class="action-row">
-      <button class="btn brass" onclick="emailResults()">✉ Email My Results</button>
-      <button class="btn ghost" onclick="copyResults()">Copy Results</button>
-      <button class="btn ghost" onclick="showView('landing')">Back to Menu</button>
+    <div class="stat-tile">
+      <div class="num">1,000<span>+</span></div>
+      <div class="lbl">Workshops coordinated, ANON</div>
     </div>
-    <div class="lab-note" style="margin-top:20px;">"Email My Results" opens your email app with everything pre-filled — just hit send. It sends a copy to you and to your instructor.</div>
-  </section>
-
-  <!-- SHORT QS -->
-  <section class="view" id="shortq">
-    <p class="eyebrow">Short Answer Practice · Module 3 & 4</p>
-    <h1 class="pagetitle">Answer in your head first.</h1>
-    <p class="pagesub">Tap a question to reveal the model answer. Be honest with yourself before peeking.</p>
-    <div id="shortList"></div>
-  </section>
-
-  <!-- LONG QS -->
-  <section class="view" id="longq">
-    <p class="eyebrow">Long Answer Practice · Module 3 & 4</p>
-    <h1 class="pagetitle">Explain it like you're teaching it.</h1>
-    <p class="pagesub">These are essay-style — write a few paragraphs on paper or out loud before revealing the model answer.</p>
-    <div id="longList"></div>
-  </section>
-
-  <!-- CODE LAB -->
-  <section class="view" id="codelab">
-    <p class="eyebrow">Homework · Due before Day 3</p>
-    <h1 class="pagetitle">The Late-Night Rush DAG</h1>
-    <span class="lab-tag">Solo build · Submit a .py file</span>
-
-    <div class="lab-card">
-      <h3>Scenario</h3>
-      <p style="color:var(--ink-soft);">A restaurant wants an Airflow DAG that kicks off their late-night rush prep — checking expected demand, deciding how much staff to call in, and always closing out with a shift report, even if something along the way fails.</p>
-
-      <h3 style="margin-top:26px;">Requirements</h3>
-      <ul>
-        <li>DAG id: <code>late_night_rush</code>. Must be <b>timezone-aware</b> (use <code>pendulum</code>, not plain <code>datetime</code>), scheduled daily at <b>11 PM IST</b>, and must <b>not</b> backfill historical days.</li>
-        <li>First task, <code>check_delivery_demand</code>, simulates a call to a delivery-aggregator API. Configure it with <code>retries=3</code>, an initial <code>retry_delay</code> of 1 minute, <b>exponential backoff enabled</b>, and a <code>max_retry_delay</code> capped at 10 minutes.</li>
-        <li>Based on the (simulated) demand value, <b>branch</b> using <code>BranchPythonOperator</code>: high demand goes to a <code>call_extra_staff</code> path, otherwise a <code>standard_staffing</code> path. (Branch on an actual value returned by the check — not a string-matching shortcut.)</li>
-        <li>Both paths must converge into one final task, <code>shift_report</code>, which should run <b>regardless of which branch was taken</b> — pick the correct <code>trigger_rule</code> so it doesn't get skipped the way <code>close_kitchen</code> did in class.</li>
-        <li>Attach an <code>on_failure_callback</code> via <code>default_args</code> (a simple function that logs/prints the failing <code>dag_id</code> and <code>task_id</code> is enough — no real Slack/email integration required) so it covers every task in the DAG automatically.</li>
-      </ul>
-
-      <h3 style="margin-top:26px;">Submit</h3>
-      <ul>
-        <li>One <code>.py</code> file, named <code>late_night_rush_dag.py</code></li>
-        <li>A short paragraph (3–5 sentences): if this DAG had been left <b>paused for a week</b> with <code>catchup=True</code> instead of <code>False</code>, what would happen the moment you unpaused it — and why?</li>
-      </ul>
-
-      <div class="lab-note">This combines five separate things from today — timezone-aware scheduling, retry/backoff config, branching, trigger rules, and failure callbacks — into one working DAG. Get each piece running on its own first before wiring them together.</div>
+    <div class="stat-tile">
+      <div class="num">22,900<span>+</span></div>
+      <div class="lbl">LinkedIn followers</div>
     </div>
-  </section>
+  </div>
+</section>
 
-</div>
+<!-- ================= CURRICULUM PIPELINE ================= -->
+<section class="section wrap" id="teach">
+  <div class="section-head reveal">
+    <span class="kicker">// intellibi_curriculum</span>
+    <h2>What we're building together</h2>
+    <p>Same DAG logic, applied to your learning path — each stage depends on the one before it.</p>
+  </div>
+  <div class="curric-track reveal">
+    <div class="curric-card">
+      <div class="step">STAGE 01</div>
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M8 7.5L11 16M16 7.5L13 16M8.5 6H15.5"/></svg></div>
+      <h4>Apache Airflow</h4>
+      <p>DAGs, operators, scheduling, sensors — orchestration from first principles.</p>
+    </div>
+    <div class="curric-arrow">→</div>
+    <div class="curric-card">
+      <div class="step">STAGE 02</div>
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3L4 7l4 4M16 3l4 4-4 4M14 3l-4 18"/></svg></div>
+      <h4>Python</h4>
+      <p>The language every pipeline, script, and AI agent in this course runs on.</p>
+    </div>
+    <div class="curric-arrow">→</div>
+    <div class="curric-card">
+      <div class="step">STAGE 03</div>
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="5" rx="1"/><rect x="3" y="10.5" width="18" height="5" rx="1"/><rect x="3" y="17" width="18" height="4" rx="1"/></svg></div>
+      <h4>PySpark</h4>
+      <p>Distributed processing — when your data stops fitting on one machine.</p>
+    </div>
+    <div class="curric-arrow">→</div>
+    <div class="curric-card">
+      <div class="step">STAGE 04</div>
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4 4 0 01-1-7.87A5.5 5.5 0 0116.9 8.1 4.5 4.5 0 0117 18H7z"/></svg></div>
+      <h4>Microsoft Fabric</h4>
+      <p>Unified analytics — bringing the pipeline into one governed platform.</p>
+    </div>
+    <div class="curric-arrow">→</div>
+    <div class="curric-card">
+      <div class="step">STAGE 05</div>
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 015 5c0 2-1 3-2 4v2H9v-2c-1-1-2-2-2-4a5 5 0 015-5z"/><path d="M9 19h6M10 22h4"/></svg></div>
+      <h4>AI / GenAI</h4>
+      <p>LLMs, RAG, prompt engineering — where the pipeline gets a brain.</p>
+    </div>
+  </div>
+</section>
 
-<footer>
-  Day 2 Checkpoint · Apache Airflow for Data Engineering<br>
-  Curated &amp; delivered by <span class="name">Siddhant Deepak Kumar Pradhan</span>
+<!-- ================= SKILLS ================= -->
+<section class="section wrap" id="skills">
+  <div class="section-head reveal">
+    <span class="kicker">// tech_stack</span>
+    <h2>The toolkit, grouped the way it's actually used</h2>
+  </div>
+  <div class="skill-groups reveal">
+    <div class="skill-card">
+      <div class="head">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="1.8"><circle cx="6" cy="6" r="2.2"/><circle cx="18" cy="6" r="2.2"/><circle cx="12" cy="18" r="2.2"/><path d="M8 7L11 16M16 7L13 16M8.5 6H15.5" stroke="var(--cyan)"/></svg></div>
+        <h4>Orchestration &amp; Pipelines</h4>
+      </div>
+      <div class="chip-row">
+        <span class="chip">Apache Airflow</span><span class="chip">PySpark</span><span class="chip">Microsoft Fabric</span>
+        <span class="chip">Databricks</span><span class="chip">Jenkins</span><span class="chip">CI/CD</span>
+      </div>
+    </div>
+    <div class="skill-card">
+      <div class="head">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--violet)" stroke-width="1.8"><path d="M12 2a5 5 0 015 5c0 2-1 3-2 4v2H9v-2c-1-1-2-2-2-4a5 5 0 015-5z"/><path d="M9 19h6M10 22h4"/></svg></div>
+        <h4>GenAI &amp; LLMs</h4>
+      </div>
+      <div class="chip-row">
+        <span class="chip">LangChain</span><span class="chip">LangGraph</span><span class="chip">RAG</span>
+        <span class="chip">Vector DBs</span><span class="chip">Fine-tuning</span><span class="chip">Prompt Engineering</span><span class="chip">Ollama</span>
+      </div>
+    </div>
+    <div class="skill-card">
+      <div class="head">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--lime)" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/></svg></div>
+        <h4>Languages &amp; Scripting</h4>
+      </div>
+      <div class="chip-row">
+        <span class="chip">Python</span><span class="chip">SQL</span><span class="chip">Unix Shell</span>
+        <span class="chip">JSON / XML / XSL</span><span class="chip">REST APIs</span>
+      </div>
+    </div>
+    <div class="skill-card">
+      <div class="head">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="1.8"><path d="M7 18a4 4 0 01-1-7.87A5.5 5.5 0 0116.9 8.1 4.5 4.5 0 0117 18H7z"/></svg></div>
+        <h4>Cloud &amp; Ops</h4>
+      </div>
+      <div class="chip-row">
+        <span class="chip">AWS</span><span class="chip">GCP</span><span class="chip">Azure</span>
+        <span class="chip">Splunk</span><span class="chip">ServiceNow</span><span class="chip">Vault</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ACHIEVEMENTS ================= -->
+<section class="section wrap" id="wins">
+  <div class="section-head reveal">
+    <span class="kicker">// run_history — status: success</span>
+    <h2>Wins worth showing, not just telling</h2>
+  </div>
+  <div class="ach-grid reveal">
+    <div class="ach-card">
+      <span class="pill">Hackathon</span>
+      <h4>AI Fridays Hackathon — Winner</h4>
+      <p>Cleared pre-regional and regional rounds; selected for the Global Finale in Chennai — one of only two participants across RBC Canada to reach that stage.</p>
+    </div>
+    <div class="ach-card">
+      <span class="pill">Ideation</span>
+      <h4>TCS Tactics AI Ideation — Finalist</h4>
+      <p>Reached the finals with a production-support-meets-GenAI concept, competing against ideas from across the organization.</p>
+    </div>
+    <div class="ach-card">
+      <span class="pill">Recognition</span>
+      <h4>3 TCS-level Awards</h4>
+      <p>Service &amp; Commitment Award, Special Achievement Award, and the AI Fridays Innovator Award.</p>
+    </div>
+    <div class="ach-card">
+      <span class="pill">Client</span>
+      <h4>3 Client Appreciations, RBC</h4>
+      <p>Direct recognition from the bank's own team for reliability and proactive incident handling.</p>
+    </div>
+    <div class="ach-card">
+      <span class="pill">Competency</span>
+      <h4>E2 GenAI Competency</h4>
+      <p>The only associate on the entire project to clear this level — self-driven, outside of any mandated training path.</p>
+    </div>
+    <div class="ach-card">
+      <span class="pill">Teaching</span>
+      <h4>Learning Coach — 89%</h4>
+      <p>Certified to mentor and upskill teammates, on top of running production support and building AI agents.</p>
+    </div>
+    <div class="ach-card">
+      <span class="pill">School era</span>
+      <h4>Olympiad National Rank 1</h4>
+      <p>NMO, NSO, and IMO — the pattern-recognition habit started early.</p>
+    </div>
+    <div class="ach-card">
+      <span class="pill">Creative</span>
+      <h4>Global Short Film Award</h4>
+      <p>Winner, MBIT IEEE short film competition — the same storytelling instinct now shapes how I explain a DAG.</p>
+    </div>
+    <div class="ach-card">
+      <span class="pill">Community</span>
+      <h4>Volunteer of the Year 2022</h4>
+      <p>ANON Global Foundation — India's Most Impactful NGO (Award 2022).</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CERTS ================= -->
+<section class="section wrap">
+  <div class="section-head reveal">
+    <span class="kicker">// credentials</span>
+    <h2>Certified, not just self-taught</h2>
+  </div>
+  <div class="cert-strip reveal">
+    <div class="cert-chip"><div class="n">22</div><div class="t">LinkedIn licenses &amp; certifications</div></div>
+    <div class="cert-chip"><div class="n">100+</div><div class="t">Google Cloud skill badges</div></div>
+    <div class="cert-chip"><div class="n">30</div><div class="t">Google Cloud quests completed</div></div>
+    <div class="cert-chip"><div class="n">AWS</div><div class="t">Academy Cloud Foundations</div></div>
+    <div class="cert-chip"><div class="n">SRE</div><div class="t">TCS Site Reliability Eng. Program</div></div>
+    <div class="cert-chip"><div class="n">500+</div><div class="t">LinkedIn Learning certifications</div></div>
+  </div>
+</section>
+
+<!-- ================= TESTIMONIALS ================= -->
+<section class="section wrap">
+  <div class="section-head reveal">
+    <span class="kicker">// what_people_say</span>
+    <h2>From people who've worked with me</h2>
+  </div>
+  <div class="testi-grid reveal">
+    <div class="testi-card">
+      <div class="quote-mark">"</div>
+      <p>Sat in on one of Siddhant's web development sessions in college and still uses the tricks and the cheat sheets he shared — the kind of teaching that sticks well past the session itself.</p>
+      <div class="testi-who">
+        <div class="testi-avatar">HR</div>
+        <div><div class="name">Harsh Raj</div><div class="role">AI Engineer, Building Production-Grade LLM Systems</div></div>
+      </div>
+    </div>
+    <div class="testi-card">
+      <div class="quote-mark">"</div>
+      <p>One of the most self-driven people I've managed — meticulous, deadline-conscious, and someone who doesn't leave a task until it's done to a genuinely high standard, especially visible in how he led and motivated his team at ANON Global Foundation.</p>
+      <div class="testi-who">
+        <div class="testi-avatar">PB</div>
+        <div><div class="name">Prachi Biswas</div><div class="role">Director, RHO Technology Solutions LLP</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FEATURED MOMENTS ================= -->
+<section class="section wrap">
+  <div class="section-head reveal">
+    <span class="kicker">// featured_on_linkedin</span>
+    <h2>Recent moments</h2>
+    <p style="margin-top:10px;">Real photos are here: All Achievement in a Nutshell.</p>
+  </div>
+  <div class="feature-grid reveal">
+    <div class="feature-card">
+      <div class="feature-img"><img src="/2.png" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div class="feature-body">
+        <h4>5 years. One company. A hundred versions of me.</h4>
+        <div class="feature-stats"><span>723</span> reactions <span>·</span> <span>22</span> comments</div>
+      </div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-img"><img src="/3.png" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div class="feature-body">
+        <h4>Has been a Google Facilitator, Trained 500+</h4>
+        <div class="feature-stats"><span>1,550</span> reactions <span>·</span> <span>140</span> comments</div>
+      </div>
+    </div>
+	<div class="feature-card">
+      <div class="feature-img"><img src="/5.png" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div class="feature-body">
+        <h4>Have been Guest Speaker at SecurityBoat, DevFest, SRM University, etc.</h4>
+        <div class="feature-stats"><span>1,090</span> reactions <span>·</span> <span>110</span> comments</div>
+      </div>
+    </div>
+	<div class="feature-card">
+      <div class="feature-img"><img src="/7.png" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div class="feature-body">
+        <h4>Own an NGO too, EC-President, ANON</h4>
+        <div class="feature-stats"><span>550</span> reactions <span>·</span> <span>40</span> comments</div>
+      </div>
+    </div>
+	<div class="feature-card">
+      <div class="feature-img"><img src="/5.png" style="width:100%;height:100%;object-fit:cover;"></div>
+      <div class="feature-body">
+        <h4>Being a Technical Trainer for Upgrad for 3 Years</h4>
+        <div class="feature-stats"><span>450</span> reactions <span>·</span> <span>38</span> comments</div>
+      </div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-img"><img src="/6.png style="width:100%;height:100%;object-fit:cover;"></div>
+      <div class="feature-body">
+        <h4>Currently Doing My MBA from Symbiosis University, Pune</h4>
+        <div class="feature-stats"><span>530</span> reactions <span>·</span> <span>58</span> comments</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CONNECT ================= -->
+<section class="section wrap" id="connect">
+  <div class="connect-box reveal">
+    <h2>Let's build your first pipeline</h2>
+    <p>Questions before class, or just want to say hi — I'm one message away.</p>
+    <div class="connect-links">
+      <a class="btn-primary" href="https://www.linkedin.com/in/pradhansiddhant/" target="_blank" rel="noopener">Connect on LinkedIn ↗</a>
+      <a class="btn-ghost" href="https://linktr.ee/siddhantpradhan" target="_blank" rel="noopener">All links (Linktree) ↗</a>
+      <a class="btn-ghost" href="mailto:siddhantpradhan.101@gmail.com">Email me</a>
+    </div>
+  </div>
+</section>
+
+<footer class="wrap">
+  <div class="footer-inner">
+    <p>© 2026 Siddhant Pradhan — built for IntelliBI students</p>
+    <p>Pune, India · +91 8160140908</p>
+  </div>
 </footer>
 
 <script>
-  /* ============ CONFIG — edit these two lines ============ */
-  const INSTRUCTOR_EMAIL = "instructor@example.com"; // <-- put your real email here
-  const PASS_MARK = 7; // out of 10
-  /* ========================================================= */
-
-  function showView(id){
-    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    document.getElementById('backBtn').classList.toggle('show', id !== 'landing');
-    window.scrollTo({top:0, behavior:'smooth'});
-    if(id === 'shortq' && !document.getElementById('shortList').dataset.built) buildShort();
-    if(id === 'longq' && !document.getElementById('longList').dataset.built) buildLong();
-  }
-
-  let studentName = "", studentEmail = "";
-
-  function startQuiz(){
-    const name = document.getElementById('sName').value.trim();
-    const email = document.getElementById('sEmail').value.trim();
-    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    if(!name || !emailOk){
-      document.getElementById('regErr').style.display = 'block';
-      return;
-    }
-    document.getElementById('regErr').style.display = 'none';
-    studentName = name; studentEmail = email;
-    buildQuiz();
-    showView('mcq-quiz');
-  }
-
-  const mcqs = [
-    { q:"A DAG scheduled @daily fires at midnight on Wednesday. What is its logical_date?", opts:["Wednesday","Tuesday","Thursday","The date you happen to check the UI"], correct:1,
-      explain:"The run firing at the end of Tuesday's interval (midnight Wednesday) is closing the books on Tuesday — logical_date equals data_interval_start, which is Tuesday." },
-    { q:"If you don't set a timezone on start_date, what does Airflow assume?", opts:["Your operating system's local timezone","UTC, always","Asia/Kolkata by default","It refuses to run until you set one"], correct:1,
-      explain:"Airflow works in UTC internally by default — 'no timezone set' does not mean 'my local timezone', which is exactly how the schedule-shift bug from class happened." },
-    { q:"What does catchup=True do the first time you unpause a DAG that's been off for 3 weeks?", opts:[
-        "Nothing — it only affects future runs",
-        "It fires every missed scheduled interval since start_date, back to back, until it catches up to now",
-        "It deletes the backlog automatically",
-        "It pauses the DAG permanently"
-      ], correct:1,
-      explain:"catchup=True backfills every missed interval immediately — with a fine-grained schedule left off for weeks, this can queue hundreds of runs at once." },
-    { q:"Which library does Airflow's own documentation recommend for timezone-aware start_dates, over plain datetime?", opts:["pytz","pendulum","arrow","dateutil"], correct:1,
-      explain:"pendulum is the Airflow-recommended library — it handles daylight saving shifts correctly, which plain datetime does not." },
-    { q:"What problem do Datasets (data-aware scheduling) solve that a fixed cron schedule can't?", opts:[
-        "They make DAGs run faster",
-        "They let a DAG trigger the moment upstream data is actually ready, instead of guessing a fixed clock time",
-        "They replace the need for a Scheduler entirely",
-        "They only work with SQL operators"
-      ], correct:1,
-      explain:"Datasets flip scheduling from time-based to event-based — a consumer DAG runs when a producer task marks a Dataset as updated, whenever that actually happens." },
-    { q:"What does retry_exponential_backoff=True change about retries?", opts:[
-        "Nothing, it's cosmetic",
-        "Each retry waits longer than the last, instead of a fixed retry_delay every time",
-        "It retries indefinitely with no limit",
-        "It skips retries entirely and fails immediately"
-      ], correct:1,
-      explain:"Exponential backoff increases the wait between each retry attempt — helpful for not hammering an already-struggling external system." },
-    { q:"A task after a branch shows 'skipped' even though it has nothing to do with the branch decision. What's the most likely cause?", opts:[
-        "A syntax error in that task",
-        "Its default trigger_rule (all_success) can't be satisfied because one of its parents was skipped, not failed",
-        "The scheduler crashed",
-        "It was manually marked skipped by a user"
-      ], correct:1,
-      explain:"all_success is the default trigger_rule for every task — a skipped parent still fails that condition, cascading the skip downstream." },
-    { q:"Which trigger_rule lets a downstream task run as long as nothing upstream actually failed (skips are fine)?", opts:["all_success","all_failed","none_failed","one_failed"], correct:2,
-      explain:"none_failed is exactly the fix used in class for close_kitchen — it tolerates skipped parents but still blocks on a genuine failure." },
-    { q:"Which CLI command runs a single task's code directly in your terminal, without going through the scheduler?", opts:["airflow dags trigger","airflow tasks test","airflow db check","airflow dags list"], correct:1,
-      explain:"airflow tasks test executes just that task's logic locally — no scheduler involvement, no metadata DB run recorded, no XCom stored." },
-    { q:"Why bother with remote logging (S3/GCS/CloudWatch) instead of just reading logs off the worker container?", opts:[
-        "Remote logging makes tasks run faster",
-        "Local logs disappear if the worker container is recycled; remote logging keeps history independent of any single container",
-        "It's required for the Scheduler to function at all",
-        "It replaces the need for the Metadata DB"
-      ], correct:1,
-      explain:"Containers get recycled routinely, especially with the Kubernetes executor — remote logging is what keeps your task history alive beyond any one container's lifetime." }
-  ];
-
-  function buildQuiz(){
-    const container = document.getElementById('quizQuestions');
-    container.innerHTML = '';
-    mcqs.forEach((item, qi)=>{
-      const card = document.createElement('div');
-      card.className = 'q-card';
-      card.innerHTML = `<div class="q-num">Question ${qi+1} of ${mcqs.length}</div><div class="q-text">${item.q}</div>`;
-      item.opts.forEach((opt, oi)=>{
-        const row = document.createElement('label');
-        row.className = 'opt-row';
-        row.innerHTML = `<input type="radio" name="q${qi}" value="${oi}"> ${opt}`;
-        row.querySelector('input').addEventListener('change', ()=>{
-          card.querySelectorAll('.opt-row').forEach(r=>r.classList.remove('picked'));
-          row.classList.add('picked');
-        });
-        card.appendChild(row);
-      });
-      container.appendChild(card);
+  // scroll reveal
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
     });
-  }
+  }, {threshold:.12});
+  revealEls.forEach(el=>io.observe(el));
 
-  let lastResults = [];
-
-  function submitQuiz(){
-    let score = 0;
-    lastResults = mcqs.map((item, qi)=>{
-      const picked = document.querySelector(`input[name="q${qi}"]:checked`);
-      const pickedIndex = picked ? parseInt(picked.value) : -1;
-      const isRight = pickedIndex === item.correct;
-      if(isRight) score++;
-      return {
-        q: item.q,
-        yourAnswer: pickedIndex >= 0 ? item.opts[pickedIndex] : "(not answered)",
-        correctAnswer: item.opts[item.correct],
-        explain: item.explain,
-        isRight
-      };
+  // active nav link on scroll
+  const sections = ['pipeline','teach','skills','wins','connect'].map(id=>document.getElementById(id));
+  const navLinks = document.querySelectorAll('.nav-links a');
+  window.addEventListener('scroll', ()=>{
+    let current = '';
+    sections.forEach(sec=>{
+      if(sec && window.scrollY >= sec.offsetTop - 160) current = sec.id;
     });
-    renderResults(score);
-    showView('mcq-results');
-  }
-
-  function renderResults(score){
-    document.getElementById('scoreBig').textContent = `${score} / ${mcqs.length}`;
-    const badge = document.getElementById('scoreBadge');
-    if(score >= PASS_MARK){ badge.textContent = 'Checkpoint cleared'; badge.className = 'badge pass'; }
-    else{ badge.textContent = 'Needs another pass'; badge.className = 'badge fail'; }
-
-    const list = document.getElementById('reviewList');
-    list.innerHTML = '';
-    lastResults.forEach((r, i)=>{
-      const div = document.createElement('div');
-      div.className = 'review-item ' + (r.isRight ? 'right' : 'wrong');
-      div.innerHTML = `
-        <span class="review-tag">${r.isRight ? 'Correct' : 'Incorrect'}</span>
-        <div class="review-q">${i+1}. ${r.q}</div>
-        <div class="review-row"><b>Your answer</b>${r.yourAnswer}</div>
-        ${!r.isRight ? `<div class="review-row"><b>Correct answer</b>${r.correctAnswer}</div>` : ''}
-        <div class="review-explain">${r.explain}</div>
-      `;
-      list.appendChild(div);
+    navLinks.forEach(l=>{
+      l.classList.toggle('active', l.getAttribute('href') === '#'+current);
     });
-  }
-
-  function buildEmailBody(){
-    const score = lastResults.filter(r=>r.isRight).length;
-    let body = `Airflow Day 2 Checkpoint Results\nName: ${studentName}\nEmail: ${studentEmail}\nScore: ${score} / ${mcqs.length}\n\n`;
-    lastResults.forEach((r,i)=>{
-      body += `${i+1}. ${r.q}\nYour answer: ${r.yourAnswer}\n`;
-      if(!r.isRight) body += `Correct answer: ${r.correctAnswer}\nWhy: ${r.explain}\n`;
-      body += `\n`;
-    });
-    return body;
-  }
-
-  function emailResults(){
-    const score = lastResults.filter(r=>r.isRight).length;
-    const subject = encodeURIComponent(`Airflow Day 2 Checkpoint — ${studentName} — ${score}/${mcqs.length}`);
-    const body = encodeURIComponent(buildEmailBody());
-    window.location.href = `mailto:${studentEmail}?cc=${INSTRUCTOR_EMAIL}&subject=${subject}&body=${body}`;
-  }
-
-  function copyResults(){
-    navigator.clipboard.writeText(buildEmailBody()).then(()=>{
-      alert('Results copied — paste them anywhere you like.');
-    });
-  }
-
-  /* ---------- Short & Long reveal builders ---------- */
-  const shortQs = [
-    { q:"Why does a run that physically executes on Wednesday morning report logical_date as Tuesday?", a:"The run fires at the end of the interval it's responsible for. A @daily run firing at midnight Wednesday is closing the books on all of Tuesday's data — logical_date always equals data_interval_start, not the moment the run actually happened." },
-    { q:"Why should you always set an explicit timezone (tz=) on a DAG's start_date, even if your team is all in one country?", a:"Airflow defaults to UTC internally. Without an explicit tz, any time you write in your schedule is silently interpreted as UTC — so a later schedule change (like shifting from 6 AM to 5 AM) can shift not just the run time but which calendar date's data actually gets processed, exactly as in today's bug story." },
-    { q:"Why is catchup=False the safer default for most demo, training, or newly-built DAGs?", a:"Without it, turning on a DAG backfills every missed scheduled interval since start_date immediately — for a DAG left off for days or weeks, that can mean hundreds of runs firing back to back and saturating the pool's slots all at once." },
-    { q:"What's the difference between a scheduled DAG run and a manually triggered one?", a:"A scheduled run is created automatically by the Scheduler when its interval is due. A manual trigger fires a run on demand outside the schedule, optionally with a custom config or logical date — both show up in the Grid view but are tagged with a different run type." },
-    { q:"What real problem do Datasets (data-aware scheduling) solve that a well-chosen cron expression can't?", a:"Cron can only guess a fixed clock time by which upstream data is 'probably' ready. Datasets let a consumer DAG react the moment a producer task actually marks the data as updated — removing the guesswork and the buffer time teams usually pad into a cron schedule just in case." },
-    { q:"Why does exponential backoff matter when retrying a call to a flaky external API, instead of just retrying immediately every time?", a:"Retrying instantly and repeatedly against a system that's already struggling can make the problem worse (effectively a mini denial-of-service). Exponential backoff spaces retries progressively further apart, giving the external system room to recover." },
-    { q:"After a BranchPythonOperator, why does a downstream 'join' task often need trigger_rule=none_failed instead of the default?", a:"The default all_success requires every parent to have succeeded — but the branch not taken is marked 'skipped', not 'succeeded', so all_success can never be satisfied and the join task skips forever. none_failed tolerates skips while still blocking on a genuine failure." },
-    { q:"What's the practical difference between airflow tasks test and actually triggering the DAG through the UI?", a:"tasks test runs one task's code in isolation, right in your terminal — no scheduler, no executor, no metadata DB write, and no XComs stored for other tasks to read. Triggering through the UI runs the full DAG for real, through the scheduler and executor, with everything recorded exactly like a normal run." }
-  ];
-
-  const longQs = [
-    { q:"Walk through, step by step, why a DAG scheduled at '6 AM' with no explicit timezone could end up processing the wrong day's data after someone changes the schedule to '5 AM' — and explain how you'd fix it for good, not just patch it once.",
-      a:"Without a timezone set, Airflow interprets '6 AM' and '5 AM' as UTC, not local time. For a team in India (UTC+5:30), a schedule change from 6 AM to 5 AM shifts the actual local fire time by roughly 6.5 hours earlier than intended, not 1 hour. Because IST is ahead of UTC, subtracting that gap can push the computed logical_date back by a full day — the pipeline keeps running on schedule, but starts silently processing 'yesterday' instead of 'today,' and since it doesn't error out, nobody notices until downstream numbers look off. The one-time patch is recalculating the correct UTC-equivalent time by hand — fragile, and it breaks again on the next schedule tweak or a daylight-saving-observing region. The real fix is making the DAG timezone-aware permanently: import pendulum, set start_date=pendulum.datetime(year, month, day, tz='Asia/Kolkata'), and write the schedule in that same local frame going forward — so '5 AM' always means 5 AM IST regardless of who edits the schedule later." },
-    { q:"Design a branching pipeline that reads from three sources in parallel, performs a data-quality check, and either merges the data or raises an alert. Explain your trigger_rule choice for every downstream task, not just the final one — including any task that isn't directly involved in the branch decision.",
-      a:"Three extract tasks (extract_a, extract_b, extract_c) run in parallel as siblings, each keeping the default all_success trigger_rule since they have no branching parents to worry about. A check_quality task (BranchPythonOperator) depends on all three and also keeps all_success — it should only evaluate once every source has actually landed. It returns either 'raise_alert' or 'merge_and_write', and Airflow marks whichever path wasn't chosen as skipped automatically. Both raise_alert and merge_and_write keep their default all_success, since each has exactly one parent (check_quality) which did succeed. The critical decision is the final convergence task — anything that must run regardless of which branch fired, like a 'close_pipeline' or notification step — that task needs trigger_rule=none_failed, because its parents include both the taken path (succeeded) and the skipped path (skipped, not succeeded), and all_success would never be satisfied. Any task further downstream of that convergence point can safely go back to all_success, since by then the skip has already been absorbed." },
-    { q:"A junior engineer says: 'My DAG has been paused for 3 weeks and I just turned it on — now it's flooding with hundreds of runs and pool slots are maxed out.' Explain exactly what happened, and describe two different ways it could have been prevented or fixed.",
-      a:"This is catchup=True in action (or the flag never being set, since backfilling is the honest default without it). The moment the DAG was unpaused, Airflow treated every scheduled interval between start_date and now as 'missed' and queued all of them to run immediately, one after another — for a fine-grained schedule left off for three weeks, that's easily hundreds of runs competing for the same pool slots, which is why everything looks stuck or maxed out rather than just busy. Prevention option one: set catchup=False explicitly when defining the DAG, so unpausing only fires the current/next scheduled interval going forward, ignoring the backlog entirely. Prevention option two, if the historical backfill genuinely is wanted but needs to be controlled: leave catchup=True but pair it with a sensible max_active_runs on the DAG, which caps how many of those backfilled runs can execute concurrently, letting them work through the backlog gradually instead of all firing into the pool at once. If the flood has already happened, the fastest fix is pausing the DAG again, clearing the excess queued runs from the Grid view, then re-enabling with catchup=False before unpausing for good." }
-  ];
-
-  function buildReveal(list, targetId){
-    const container = document.getElementById(targetId);
-    container.dataset.built = "1";
-    container.innerHTML = '';
-    list.forEach((item, i)=>{
-      const card = document.createElement('div');
-      card.className = 'rev-card';
-      card.innerHTML = `
-        <div class="rev-head">
-          <div><span class="qn">Question ${i+1}</span><h4>${item.q}</h4></div>
-          <span class="rev-plus">+</span>
-        </div>
-        <div class="rev-body"><span class="model-lbl">Model Answer</span><p>${item.a}</p></div>
-      `;
-      card.querySelector('.rev-head').addEventListener('click', ()=>{
-        const wasOpen = card.classList.contains('open');
-        card.classList.toggle('open');
-        const body = card.querySelector('.rev-body');
-        body.style.maxHeight = wasOpen ? null : body.scrollHeight + 'px';
-      });
-      container.appendChild(card);
-    });
-  }
-  function buildShort(){ buildReveal(shortQs, 'shortList'); }
-  function buildLong(){ buildReveal(longQs, 'longList'); }
+  });
 </script>
 
 </body>
